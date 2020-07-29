@@ -162,7 +162,7 @@ describe('Applying updates to a doc', function () {
 
     return describe('when sending another update', function () {
       before(function (done) {
-        this.timeout = 10000
+        this.timeout(10000)
         this.second_update = Object.create(this.update)
         this.second_update.v = this.version + 1
         DocUpdaterClient.sendUpdate(
@@ -608,6 +608,7 @@ describe('Applying updates to a doc', function () {
 
   describe('with enough updates to flush to the track changes api', function () {
     before(function (done) {
+      this.timeout(5000)
       ;[this.project_id, this.doc_id] = Array.from([
         DocUpdaterClient.randomId(),
         DocUpdaterClient.randomId()

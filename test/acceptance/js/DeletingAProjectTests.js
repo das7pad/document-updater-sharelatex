@@ -229,6 +229,7 @@ describe('Deleting a project', function () {
 
   return describe('with the background=true parameter from realtime and a request to flush the queue', function () {
     before(function (done) {
+      this.timeout(5000)
       sinon.spy(MockWebApi, 'setDocument')
       sinon.spy(MockTrackChangesApi, 'flushDoc')
       sinon.spy(MockProjectHistoryApi, 'flushProject')

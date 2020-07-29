@@ -392,6 +392,7 @@ describe("Applying updates to a project's structure", function () {
 
   describe('with enough updates to flush to the history service', function () {
     before(function (done) {
+      this.timeout(5000)
       this.project_id = DocUpdaterClient.randomId()
       this.user_id = DocUpdaterClient.randomId()
       this.version0 = 12345
@@ -450,6 +451,7 @@ describe("Applying updates to a project's structure", function () {
 
   describe('with too few updates to flush to the history service', function () {
     before(function (done) {
+      this.timeout(5000)
       this.project_id = DocUpdaterClient.randomId()
       this.user_id = DocUpdaterClient.randomId()
       this.version0 = 12345

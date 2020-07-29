@@ -245,7 +245,6 @@ describe('Getting a document', function () {
 
   return describe('when the web api http request takes a long time', function () {
     before(function (done) {
-      this.timeout = 10000
       ;[this.project_id, this.doc_id] = Array.from([
         DocUpdaterClient.randomId(),
         DocUpdaterClient.randomId()
@@ -266,6 +265,7 @@ describe('Getting a document', function () {
     })
 
     return it('should return quickly(ish)', function (done) {
+      this.timeout(35000)
       const start = Date.now()
       return DocUpdaterClient.getDoc(
         this.project_id,

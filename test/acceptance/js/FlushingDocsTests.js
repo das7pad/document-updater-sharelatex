@@ -149,6 +149,7 @@ describe('Flushing a doc to Mongo', function () {
     })
 
     return it('should still work', function (done) {
+      this.timeout(35000)
       const start = Date.now()
       return DocUpdaterClient.flushDoc(
         this.project_id,
