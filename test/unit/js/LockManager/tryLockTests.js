@@ -53,7 +53,8 @@ describe('LockManager - trying the lock', function () {
           Profiler.initClass()
           return Profiler
         })())
-      }
+      },
+      globals: { process }
     })
 
     this.callback = sinon.stub()

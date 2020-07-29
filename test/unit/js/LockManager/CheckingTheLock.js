@@ -46,7 +46,10 @@ describe('LockManager - checking the lock', function () {
       return Profiler
     })())
   }
-  const LockManager = SandboxedModule.require(modulePath, { requires: mocks })
+  const LockManager = SandboxedModule.require(modulePath, {
+    requires: mocks,
+    globals: { process }
+  })
 
   it('should return true if the key does not exists', function (done) {
     existsStub.yields(null, '0')

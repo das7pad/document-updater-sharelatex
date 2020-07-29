@@ -42,7 +42,8 @@ describe('LockManager - getting the lock', function () {
           Profiler.initClass()
           return Profiler
         })())
-      }
+      },
+      globals: { process }
     })
     this.callback = sinon.stub()
     return (this.doc_id = 'doc-id-123')

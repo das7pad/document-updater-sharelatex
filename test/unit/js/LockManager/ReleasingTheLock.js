@@ -57,7 +57,10 @@ describe('LockManager - releasing the lock', function () {
         return Profiler
       })())
     }
-    this.LockManager = SandboxedModule.require(modulePath, { requires: mocks })
+    this.LockManager = SandboxedModule.require(modulePath, {
+      requires: mocks,
+      globals: { process }
+    })
     this.lockValue = 'lock-value-stub'
     return (this.callback = sinon.stub())
   })
