@@ -39,11 +39,16 @@ module.exports = {
     },
 
     history: {
-      port: process.env.HISTORY_REDIS_PORT || process.env.REDIS_PORT || '6379',
+      port:
+        process.env.DOC_UPDATER_REDIS_PORT || process.env.REDIS_PORT || '6379',
       host:
-        process.env.HISTORY_REDIS_HOST || process.env.REDIS_HOST || 'localhost',
+        process.env.DOC_UPDATER_REDIS_HOST ||
+        process.env.REDIS_HOST ||
+        'localhost',
       password:
-        process.env.HISTORY_REDIS_PASSWORD || process.env.REDIS_PASSWORD || '',
+        process.env.DOC_UPDATER_REDIS_PASSWORD ||
+        process.env.REDIS_PASSWORD ||
+        '',
       maxRetriesPerRequest: parseInt(
         process.env.REDIS_MAX_RETRIES_PER_REQUEST || '20'
       ),
