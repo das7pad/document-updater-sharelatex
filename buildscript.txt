@@ -1,10 +1,5 @@
 document-updater
---acceptance-creds=None
---dependencies=mongo,redis
---docker-repos=gcr.io/overleaf-ops
---env-add=
---env-pass-through=
 --language=es
---node-version=10.21.0
---public-repo=True
---script-version=2.2.0
+--node-version=12.18.3
+--dependencies=mongo,redis_documentupdater,redis_lock,redis_pubsub,redis_new_history
+--lint-runner-version=2.0.1

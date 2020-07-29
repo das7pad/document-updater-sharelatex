@@ -1,45 +1,58 @@
 # This file was auto-generated, do not edit it directly.
 # Instead run bin/update_build_scripts from
-# https://github.com/sharelatex/sharelatex-dev-environment
+# https://github.com/das7pad/sharelatex-dev-env
 
-version: "2.3"
+version: "3.1"
 
 services:
   test_unit:
-    image: node:10.21.0
+    image: node:12.18.3
     volumes:
       - .:/app
     working_dir: /app
     environment:
       MOCHA_GREP: ${MOCHA_GREP}
-      NODE_ENV: test
     command: npm run test:unit
     user: node
 
   test_acceptance:
-    image: node:10.21.0
+    image: node:12.18.3
     volumes:
       - .:/app
     working_dir: /app
     environment:
-      ELASTIC_SEARCH_DSN: es:9200
-      REDIS_HOST: redis
+      LOG_LEVEL: fatal
       MONGO_HOST: mongo
-      POSTGRES_HOST: postgres
+      DOC_UPDATER_REDIS_HOST: redis_documentupdater
+      LOCK_REDIS_HOST: redis_lock
+      PUBSUB_REDIS_HOST: redis_pubsub
+      NEW_HISTORY_REDIS_HOST: redis_new_history
       MOCHA_GREP: ${MOCHA_GREP}
-      LOG_LEVEL: ERROR
-      NODE_ENV: test
     user: node
     depends_on:
-      mongo:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - mongo
+      - redis_documentupdater
+      - redis_lock
+      - redis_pubsub
+      - redis_new_history
     command: npm run test:acceptance
 
-  redis:
-    image: redis
-
   mongo:
-    image: mongo:3.6
+    image: mongo
+    tmpfs: /data
 
+  redis_documentupdater:
+    image: redis
+    tmpfs: /data
+
+  redis_lock:
+    image: redis
+    tmpfs: /data
+
+  redis_pubsub:
+    image: redis
+    tmpfs: /data
+
+  redis_new_history:
+    image: redis
+    tmpfs: /data

@@ -1,25 +1,23 @@
 # This file was auto-generated, do not edit it directly.
 # Instead run bin/update_build_scripts from
-# https://github.com/sharelatex/sharelatex-dev-environment
+# https://github.com/das7pad/sharelatex-dev-env
 
-FROM node:10.21.0 as base
+FROM node:12.18.3 AS base
+
+CMD ["node", "--expose-gc", "app.js"]
 
 WORKDIR /app
 
-FROM base as app
+COPY docker_cleanup.sh /
 
-#wildcard as some files may not be in all repos
-COPY package*.json npm-shrink*.json /app/
+COPY package.json package-lock.json /app/
 
-RUN npm ci --quiet
+FROM base AS dev-deps
+
+RUN /docker_cleanup.sh npm ci
+
+FROM dev-deps as dev
 
 COPY . /app
 
-
-
-FROM base
-
-COPY --from=app /app /app
 USER node
-
-CMD ["node", "--expose-gc", "app.js"]

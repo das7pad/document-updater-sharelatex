@@ -1,6 +1,6 @@
-// this file was auto-generated, do not edit it directly.
-// instead run bin/update_build_scripts from
-// https://github.com/sharelatex/sharelatex-dev-environment
+// This file was auto-generated, do not edit it directly.
+// Instead run bin/update_build_scripts from
+// https://github.com/das7pad/sharelatex-dev-env
 {
   "extends": [
     "standard",
@@ -8,7 +8,7 @@
     "prettier/standard"
   ],
   "parserOptions": {
-    "ecmaVersion": 2018
+    "ecmaVersion": 2017
   },
   "plugins": [
     "mocha",
@@ -18,11 +18,6 @@
   "env": {
     "node": true,
     "mocha": true
-  },
-  "rules": {
-    // Swap the no-unused-expressions rule with a more chai-friendly one
-    "no-unused-expressions": 0,
-    "chai-friendly/no-unused-expressions": "error"
   },
   "overrides": [
     {
@@ -46,9 +41,14 @@
         "chai-expect/missing-assertion": "error",
         "chai-expect/terminating-properties": "error",
 
-        // prefer-arrow-callback applies to all callbacks, not just ones in mocha tests.
-        // we don't enforce this at the top-level - just in tests to manage `this` scope
-        // based on mocha's context mechanism
+        // Swap the no-unused-expressions rule with a more chai-friendly one
+        "no-unused-expressions": "off",
+        "chai-friendly/no-unused-expressions": "error",
+
+        // prefer-arrow-callback applies to all callbacks, not just ones in
+        //  mocha tests.
+        // we don't enforce this at the top-level -- just in tests to manage
+        //  `this` scope based on mocha's context mechanism
         "mocha/prefer-arrow-callback": "error"
       }
     },

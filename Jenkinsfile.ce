@@ -1,0 +1,198 @@
+// This file was auto-generated, do not edit it directly.
+// Instead run bin/update_build_scripts from
+// https://github.com/das7pad/sharelatex-dev-env
+
+pipeline {
+  agent none
+  environment {
+    DOCKER_COMPOSE_FLAGS = "-f docker-compose.ci.yml"
+  }
+
+  stages {
+    stage('Fan Out 1') {
+      parallel {
+        stage('Lint') {
+          agent {
+            label 'sharelatex'
+          }
+          steps {
+            sh 'make lint'
+          }
+        }
+
+        stage('Formatting') {
+          agent {
+            label 'sharelatex'
+          }
+          steps {
+            sh 'make format'
+          }
+        }
+
+        stage('App Image') {
+          agent {
+            label 'sharelatex && docker_builder'
+          }
+          stages {
+            stage('Prepare environment') {
+              stages {
+                stage('Pull node image') {
+                  steps {
+                    sh 'make pull_node'
+                  }
+                }
+                stage('Clean Previous artifacts') {
+                  steps {
+                    sh 'make clean_output'
+                    sh 'git clean -xdf'
+                  }
+                }
+                stage('Pull Cache') {
+                  environment {
+                    TARGET = '-dev-deps'
+                    R_TARGET = '-dev-deps'
+                  }
+                  steps {
+                    sh 'make pull_cache'
+                  }
+                  post {
+                    cleanup {
+                      sh 'make clean_pull_cache'
+                    }
+                  }
+                }
+              }
+            }
+
+            stage('Build dev-deps') {
+              steps {
+                sh 'make build_dev_deps'
+              }
+            }
+
+            stage('Push dev-deps') {
+              environment {
+                TARGET = '-dev-deps'
+                R_TARGET = '-dev-deps'
+              }
+              steps {
+                sh 'make push_cache_hot'
+                sh 'make push_target'
+              }
+              post {
+                cleanup {
+                  sh 'make clean_push'
+                }
+              }
+            }
+          }
+          post {
+            cleanup {
+              sh 'make clean_docker_images'
+            }
+          }
+        }
+      }
+    }
+
+    stage('Fan out 2') {
+      parallel {
+        stage('Unit Tests') {
+          agent {
+            label 'sharelatex'
+          }
+          environment {
+            SUFFIX = '-test-unit'
+          }
+          steps {
+            sh 'make prepare_ci_stage'
+            sh 'make test_unit_app'
+          }
+          post {
+            always {
+              xunit(tools: [JUnit(pattern: 'output/unit.xml')])
+            }
+            cleanup {
+              sh 'make clean_ci_stage'
+            }
+          }
+        }
+
+        stage('App Acceptance Tests') {
+          agent {
+            label 'sharelatex'
+          }
+          environment {
+            SUFFIX = '-test-acceptance'
+          }
+          steps {
+            sh 'make prepare_ci_stage'
+            sh 'make test_acceptance_app'
+          }
+          post {
+            always {
+              xunit(tools: [JUnit(pattern: 'output/acceptance.xml')])
+            }
+            cleanup {
+              sh 'make clean_test_acceptance_app'
+              sh 'make clean_ci_stage'
+            }
+          }
+        }
+
+        stage('Production build') {
+          agent {
+            label 'sharelatex && docker_builder'
+          }
+          stages {
+            stage('Production build') {
+              environment {
+                TARGET = '-prod'
+                R_TARGET = ''
+              }
+              stages {
+                stage('Pull production cache') {
+                  steps {
+                    sh 'make pull_cache'
+                  }
+                  post {
+                    cleanup {
+                      sh 'make clean_pull_cache'
+                    }
+                  }
+                }
+                stage('Build production') {
+                  steps {
+                    sh 'make build_dev_with_cache'
+                    sh 'make build_prod'
+                  }
+                  post {
+                    cleanup {
+                      sh 'make clean_stage_images'
+                    }
+                  }
+                }
+                stage('docker push') {
+                  steps {
+                    sh 'make push_cache_hot'
+                    sh 'make push_target'
+                  }
+                  post {
+                    cleanup {
+                      sh 'make clean_push'
+                    }
+                  }
+                }
+              }
+            }
+          }
+          post {
+            cleanup {
+              sh 'make clean_build'
+            }
+          }
+        }
+      }
+    }
+  }
+}

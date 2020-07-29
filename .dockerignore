@@ -1,7 +1,63 @@
-node_modules/*
-gitrev
-.git
-.gitignore
-.npm
-.nvmrc
-nodemon.json
+# This file was auto-generated, do not edit it directly.
+# Instead run bin/update_build_scripts from
+# https://github.com/das7pad/sharelatex-dev-env
+
+# ignore everything but our allow list
+*
+
+!/LICENSE
+
+########
+# core #
+!/package-lock.json
+!/package.json
+# core #
+########
+
+########
+# make #
+!/Makefile
+# make #
+########
+
+###########
+# scripts #
+!/docker_cleanup.sh
+# scripts #
+###########
+
+###############
+# tool config #
+!/.eslintrc
+
+!/.prettierrc
+# tool config #
+###############
+
+##############
+# app config #
+!/config/settings.defaults.*
+# app config #
+##############
+
+#######
+# app #
+!/app.js
+!/app/js
+!/app/lib
+
+!/test/acceptance/config
+!/test/acceptance/fixtures
+!/test/acceptance/js
+!/test/acceptance/libs
+!/test/fixtures
+!/test/smoke/js
+!/test/unit/js
+# app #
+#######
+
+###################
+# build artifacts #
+!/build_artifacts.tar.gz
+# build artifacts #
+###################
