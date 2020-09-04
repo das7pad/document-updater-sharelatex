@@ -22,7 +22,7 @@
     "async": "^2.5.0",
     "body-parser": "^1.19.0",
     "express": "4.17.1",
-    "lodash": "^4.17.13",
+    "lodash": "^4.17.20",
     "logger-sharelatex": "https://github.com/das7pad/logger-sharelatex/archive/16a8d66c59318ca4b3c236136fd9603ee2edb4f0.tar.gz",
     "mongojs": "https://github.com/das7pad/mongojs/archive/e39e97bf289435e2d111c6201d3306b6b776d31e.tar.gz",
     "redis-sharelatex": "https://github.com/das7pad/redis-sharelatex/archive/2d77ad921db0effe7e522cfb311ae8c8ae22f359.tar.gz",
