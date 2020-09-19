@@ -12,6 +12,7 @@ services:
     working_dir: /app
     environment:
       MOCHA_GREP: ${MOCHA_GREP}
+      NODE_OPTIONS: "--unhandled-rejections=strict"
     command: npm run test:unit
     user: node
 

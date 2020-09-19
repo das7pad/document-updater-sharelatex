@@ -8,6 +8,8 @@ services:
   test_unit:
     image: ${IMAGE_CI}-dev
     user: node
+    environment:
+      NODE_OPTIONS: "--unhandled-rejections=strict"
     entrypoint:
       - npx
       - mocha
