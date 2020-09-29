@@ -10,6 +10,9 @@ find /usr/local/lib/node_modules/npm/node_modules/node-gyp/gyp/pylib/gyp/ \
 
 if [[ -d /app/node_modules ]]; then
 
+    find /app/node_modules -mindepth 2 -maxdepth 2 -type d -name test \
+        -exec rm -rf '{}' +
+
     find /app/node_modules -type f \
         \( \
         -name '.*' \
