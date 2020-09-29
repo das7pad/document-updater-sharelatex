@@ -179,12 +179,14 @@ build_app:
 
 build_dev_deps: clean_build_artifacts
 	docker build \
+		--force-rm=true \
 		--cache-from $(IMAGE_CI)-dev-deps-cache \
 		--tag $(IMAGE_CI)-base \
 		--target base \
 		.
 
 	docker build \
+		--force-rm=true \
 		--cache-from $(IMAGE_CI)-base \
 		--cache-from $(IMAGE_CI)-dev-deps-cache \
 		--tag $(IMAGE_CI)-dev-deps \
@@ -193,6 +195,7 @@ build_dev_deps: clean_build_artifacts
 
 build_dev: clean_build_artifacts
 	docker build \
+		--force-rm=true \
 		--cache-from $(IMAGE_CI)-dev-deps \
 		--tag $(IMAGE_CI)-dev \
 		--target dev \
@@ -200,6 +203,7 @@ build_dev: clean_build_artifacts
 
 build_prod: clean_build_artifacts
 	docker build \
+		--force-rm=true \
 		--cache-from $(IMAGE_CI)-dev \
 		--tag $(IMAGE_CI)-base \
 		--target base \
@@ -218,6 +222,7 @@ build_prod: clean_build_artifacts
 		> build_artifacts.tar.gz
 
 	docker build \
+		--force-rm=true \
 		--build-arg RELEASE=$(RELEASE) \
 		--build-arg COMMIT=$(COMMIT) \
 		--build-arg BASE=$(IMAGE_CI)-base \
