@@ -295,17 +295,4 @@ clean_stage_images:
 		$(IMAGE_CI)-dev-deps \
 		$(IMAGE_CI)-dev \
 
-compress_public: public.tar.xz
-.PHONY: public.tar.xz
-public.tar.xz:
-	docker run \
-		--rm \
-		--volume $(PWD)/compress.sh:/compress.sh \
-		--workdir /app/public \
-		--entrypoint sh \
-		$(IMAGE_CI)-webpack \
-		-c '/compress.sh && tar --create .' \
-	| xz -9e \
-	> public.tar.xz
-
 .PHONY: clean test test_unit test_acceptance test_clean build
