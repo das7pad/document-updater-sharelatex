@@ -10,7 +10,11 @@ find /usr/local/lib/node_modules/npm/node_modules/node-gyp/gyp/pylib/gyp/ \
 
 if [[ -d /app/node_modules ]]; then
 
-    find /app/node_modules -mindepth 2 -maxdepth 2 -type d -name test \
+    find /app/node_modules -mindepth 2 -maxdepth 2 \
+        \( \
+        -name test \
+        -or -iname 'HISTORY*' \
+        \) \
         -exec rm -rf '{}' +
 
     find /app/node_modules -type f \
@@ -22,7 +26,6 @@ if [[ -d /app/node_modules ]]; then
         -or -name karma.conf.js \
         -or -iname 'README*' \
         -or -iname 'CHANGELOG*' \
-        -or -iname 'HISTORY*' \
         -or -iname 'CONTRIBUTING*' \
         -or -name Makefile \
         \) \
