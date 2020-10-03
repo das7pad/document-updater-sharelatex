@@ -18,7 +18,7 @@
     "format:fix": "node_modules/.bin/prettier-eslint $PWD'/**/*.js' --write"
   },
   "dependencies": {
-    "@overleaf/metrics": "https://github.com/das7pad/metrics-sharelatex/archive/314238a72d2d91d3b912f4deab4a8be97a99552f.tar.gz",
+    "@overleaf/metrics": "https://github.com/das7pad/metrics-sharelatex/archive/19efefa6e1cabc3bbd91bb443712a9624c00ccb4.tar.gz",
     "async": "^2.5.0",
     "body-parser": "^1.19.0",
     "express": "4.17.1",
