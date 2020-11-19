@@ -9,7 +9,7 @@ services:
     image: ${IMAGE_CI}-dev
     user: node
     environment:
-      NODE_OPTIONS: "--unhandled-rejections=strict"
+      NODE_OPTIONS: "--unhandled-rejections=strict --trace-deprecation"
     entrypoint:
       - npx
       - mocha

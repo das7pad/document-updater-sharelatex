@@ -110,7 +110,7 @@ pipeline {
           }
           post {
             always {
-              xunit(tools: [JUnit(pattern: 'output/unit.xml')])
+              junit 'output/unit.xml'
             }
             cleanup {
               sh 'make clean_ci_stage'
@@ -131,7 +131,7 @@ pipeline {
           }
           post {
             always {
-              xunit(tools: [JUnit(pattern: 'output/acceptance.xml')])
+              junit 'output/acceptance.xml'
             }
             cleanup {
               sh 'make clean_test_acceptance_app'
