@@ -283,7 +283,13 @@ push_target:
 	docker tag $(IMAGE_CI)$(TARGET) $(IMAGE)$(R_TARGET)
 	docker push $(IMAGE)$(R_TARGET)
 
+log_image_digest:
+	docker inspect -f '{{ index .RepoDigests 0 }}' $(IMAGE)$(R_TARGET) \
+	| cut -d: -f2 \
+	> docker-image$(R_TARGET).digest.txt
+
 clean_push:
+	rm -f docker-image$(R_TARGET).digest.txt
 	docker rmi --force \
 		$(IMAGE)$(R_TARGET) \
 		$(IMAGE_CACHE_HOT)$(R_TARGET) \

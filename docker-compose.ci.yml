@@ -18,8 +18,7 @@ services:
       - --reporter
       - xunit
       - --reporter-options
-    command:
-      - output=/home/node/unit.xml,suiteName='App Unit Tests'
+      - output=/home/node/unit.xml,suiteName='Unit Tests'
       - test/unit/js
     volumes:
       - ./output:/home/node:z
