@@ -2,4 +2,4 @@ document-updater
 --language=es
 --node-version=14.15.1
 --dependencies=mongo,redis_documentupdater,redis_lock,redis_pubsub,redis_new_history
---lint-runner-version=2.0.4
+--lint-runner-version=2.0.5
