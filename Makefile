@@ -26,7 +26,7 @@ DOCKER_COMPOSE := docker-compose $(DOCKER_COMPOSE_FLAGS)
 export DOCKER_REGISTRY ?= local
 export SHARELATEX_DOCKER_REPOS ?= $(DOCKER_REGISTRY)/sharelatex
 
-export IMAGE_NODE ?= $(DOCKER_REGISTRY)/node:14.15.0
+export IMAGE_NODE ?= $(DOCKER_REGISTRY)/node:14.15.1
 export IMAGE_PROJECT ?= $(SHARELATEX_DOCKER_REPOS)/$(PROJECT_NAME)
 export IMAGE_BRANCH ?= $(IMAGE_PROJECT):$(BRANCH_NAME)
 export IMAGE ?= $(IMAGE_BRANCH)-$(BUILD_NUMBER)
@@ -257,7 +257,7 @@ endif
 
 pull_node:
 	docker pull $(IMAGE_NODE)
-	docker tag $(IMAGE_NODE) node:14.15.0
+	docker tag $(IMAGE_NODE) node:14.15.1
 
 pull_cache_cold:
 	docker pull $(IMAGE_CACHE_COLD)$(R_TARGET)
