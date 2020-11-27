@@ -28,7 +28,7 @@ describe('HistoryRedisManager', function () {
     this.HistoryRedisManager = SandboxedModule.require(modulePath, {
       requires: {
         '@overleaf/redis-wrapper': { createClient: () => this.rclient },
-        'settings-sharelatex': {
+        '@overleaf/settings': {
           redis: {
             history: (this.settings = {
               key_schema: {

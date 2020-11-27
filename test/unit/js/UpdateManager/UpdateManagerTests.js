@@ -43,7 +43,7 @@ describe('UpdateManager', function () {
             return Timer
           })())
         }),
-        'settings-sharelatex': (this.Settings = {}),
+        '@overleaf/settings': (this.Settings = {}),
         './DocumentManager': (this.DocumentManager = {}),
         './RangesManager': (this.RangesManager = {}),
         './SnapshotManager': (this.SnapshotManager = {}),

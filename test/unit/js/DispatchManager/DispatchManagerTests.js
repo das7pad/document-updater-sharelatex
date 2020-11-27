@@ -30,7 +30,7 @@ describe('DispatchManager', function () {
           error: sinon.stub(),
           warn: sinon.stub()
         }),
-        'settings-sharelatex': (this.settings = {
+        '@overleaf/settings': (this.settings = {
           redis: {
             documentupdater: {}
           }

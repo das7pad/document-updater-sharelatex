@@ -31,7 +31,7 @@ describe('RealTimeRedisManager', function () {
           createClient: (config) =>
             config.name === 'pubsub' ? this.pubsubClient : this.rclient
         },
-        'settings-sharelatex': {
+        '@overleaf/settings': {
           redis: {
             documentupdater: (this.settings = {
               key_schema: {

@@ -23,7 +23,7 @@ describe('RateLimitManager', function () {
     this.RateLimitManager = SandboxedModule.require(modulePath, {
       requires: {
         'logger-sharelatex': (this.logger = { log: sinon.stub() }),
-        'settings-sharelatex': (this.settings = {}),
+        '@overleaf/settings': (this.settings = {}),
         './Metrics': (this.Metrics = {
           Timer: (Timer = (function () {
             Timer = class Timer {

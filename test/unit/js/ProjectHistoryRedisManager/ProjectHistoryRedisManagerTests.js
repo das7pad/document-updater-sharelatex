@@ -30,7 +30,7 @@ describe('ProjectHistoryRedisManager', function () {
       modulePath,
       {
         requires: {
-          'settings-sharelatex': (this.settings = {
+          '@overleaf/settings': (this.settings = {
             redis: {
               project_history: {
                 key_schema: {

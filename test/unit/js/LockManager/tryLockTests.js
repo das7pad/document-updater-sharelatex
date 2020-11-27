@@ -32,7 +32,7 @@ describe('LockManager - trying the lock', function () {
           }
         },
         './Metrics': { inc() {} },
-        'settings-sharelatex': {
+        '@overleaf/settings': {
           redis: {
             lock: {
               key_schema: {

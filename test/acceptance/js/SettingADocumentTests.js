@@ -2,7 +2,7 @@ const sinon = require('sinon')
 const chai = require('chai')
 chai.should()
 const { expect } = require('chai')
-const Settings = require('settings-sharelatex')
+const Settings = require('@overleaf/settings')
 const docUpdaterRedis = require('@overleaf/redis-wrapper').createClient(
   Settings.redis.documentupdater
 )

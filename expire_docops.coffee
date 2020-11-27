@@ -1,4 +1,4 @@
-Settings = require "settings-sharelatex"
+Settings = require "@overleaf/settings"
 rclient = require("@overleaf/redis-wrapper").createClient(Settings.redis.documentupdater)
 keys = Settings.redis.documentupdater.key_schema
 async = require "async"
