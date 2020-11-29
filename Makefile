@@ -311,18 +311,25 @@ log_image_digest:
 	| cut -d: -f2 \
 	> docker-image$(R_TARGET).digest.txt
 
-clean_push:
+clean_push_prod:
 	rm -f docker-image$(R_TARGET).digest.txt
 	docker rmi --force \
 		$(IMAGE)$(R_TARGET) \
+		$(IMAGE_CACHE_CONTENT_SHA) \
+		$(IMAGE_CACHE_BRANCH) \
+		$(IMAGE_CACHE_BRANCH)-prod-base \
+		$(IMAGE_CI)-prod-base \
+
+clean_push_dev_deps:
+	docker rmi --force \
 		$(IMAGE_CACHE_CONTENT_SHA) \
 		$(IMAGE_CACHE_BRANCH) \
 
 prepare_ci_stage: build_dev_with_cache
 build_dev_with_cache: pull_node
 build_dev_with_cache:
-	docker pull $(IMAGE)-dev-deps
-	docker tag $(IMAGE)-dev-deps $(IMAGE_CI)-dev-deps
+	docker pull $(IMAGE_CACHE_CONTENT_SHA)-dev-deps
+	docker tag $(IMAGE_CACHE_CONTENT_SHA)-dev-deps $(IMAGE_CI)-dev-deps
 	$(MAKE) --no-print-directory build_dev
 
 prepare_ci_stage: create_output
@@ -333,8 +340,9 @@ clean_ci_stage: clean_output
 clean_ci_stage: clean_stage_images
 clean_stage_images:
 	docker rmi --force \
-		$(IMAGE)-dev-deps \
+		$(IMAGE_CACHE_CONTENT_SHA)-dev-deps \
 		$(IMAGE_CI)-dev-deps \
 		$(IMAGE_CI)-dev \
+		$(IMAGE_CI)-prod-base-cache \
 
 .PHONY: clean test test_unit test_acceptance test_clean build

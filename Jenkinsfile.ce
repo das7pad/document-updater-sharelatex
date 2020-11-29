@@ -78,11 +78,10 @@ pipeline {
               steps {
                 sh 'make push_cache'
                 sh 'make push_cache_branch'
-                sh 'make push_target'
               }
               post {
                 cleanup {
-                  sh 'make clean_push'
+                  sh 'make clean_push_dev_deps'
                 }
               }
             }
@@ -185,7 +184,7 @@ pipeline {
                   }
                   post {
                     cleanup {
-                      sh 'make clean_push'
+                      sh 'make clean_push_prod'
                     }
                   }
                 }
