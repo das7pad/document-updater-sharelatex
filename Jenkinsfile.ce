@@ -177,6 +177,7 @@ pipeline {
                 stage('docker push') {
                   steps {
                     sh 'TARGET=-prod-base make push_cache'
+                    sh 'TARGET=-prod-base R_TARGET=-prod-base make push_cache_branch'
                     sh 'make push_cache_branch'
                     sh 'make push_target'
                     sh 'make log_image_digest'
