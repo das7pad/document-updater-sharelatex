@@ -18,7 +18,7 @@ services:
       - --reporter
       - xunit
       - --reporter-options
-      - output=/home/node/unit.xml,suiteName='Unit Tests'
+      - output=/home/node/unit.xml,suiteName='UnitTests'
       - test/unit/js
     volumes:
       - ./output:/home/node:z
@@ -49,7 +49,7 @@ services:
       - xunit
       - --reporter-options
     command:
-      - output=/home/node/acceptance.xml,suiteName='App Acceptance Tests'
+      - output=/home/node/acceptance.xml,suiteName='AppAcceptanceTests'
       - test/acceptance/js
     volumes:
       - ./output:/home/node:z

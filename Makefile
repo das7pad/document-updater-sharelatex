@@ -31,9 +31,15 @@ export IMAGE_PROJECT ?= $(SHARELATEX_DOCKER_REPOS)/$(PROJECT_NAME)
 export IMAGE_BRANCH ?= $(IMAGE_PROJECT):$(BRANCH_NAME)
 export IMAGE ?= $(IMAGE_BRANCH)-$(BUILD_NUMBER)
 
-export IMAGE_BRANCH_DEV ?= $(IMAGE_PROJECT):dev
-export IMAGE_CACHE_COLD ?= $(IMAGE_BRANCH_DEV)
-export IMAGE_CACHE_HOT ?= $(IMAGE_BRANCH)
+export CACHE_CONTENT_SHA := $(shell sh -c ' \
+	echo "14.15.1"; \
+	cat docker_cleanup.sh; \
+	cat package.json package-lock.json; \
+	' | sha256sum | cut -d' ' -f1)
+
+export IMAGE_CACHE_CONTENT_SHA ?= \
+	$(IMAGE_PROJECT):cache-$(CACHE_CONTENT_SHA)$(R_TARGET)
+export IMAGE_CACHE_BRANCH ?= $(IMAGE_BRANCH)$(R_TARGET)
 
 SUFFIX ?=
 export IMAGE_CI ?= ci/$(PROJECT_NAME):$(BRANCH_NAME)-$(BUILD_NUMBER)$(SUFFIX)
@@ -216,6 +222,16 @@ build_prod: clean_build_artifacts
 		--target base \
 		.
 
+	docker build \
+		--force-rm=true \
+		--build-arg BASE=$(IMAGE_CI)-base \
+		--cache-from $(IMAGE_CI)-base \
+		--cache-from $(IMAGE_CI)-prod-base-cache \
+		--tag $(IMAGE_CI)-prod-base \
+		--file=Dockerfile.production \
+		--target prod-base \
+		.
+
 	docker run \
 		--rm \
 		$(IMAGE_CI)-dev \
@@ -233,7 +249,7 @@ build_prod: clean_build_artifacts
 		--build-arg RELEASE=$(RELEASE) \
 		--build-arg COMMIT=$(COMMIT) \
 		--build-arg BASE=$(IMAGE_CI)-base \
-		--cache-from $(IMAGE_CI)-base \
+		--cache-from $(IMAGE_CI)-prod-base \
 		--cache-from $(IMAGE_CI)-prod-cache \
 		--tag $(IMAGE_CI)-prod \
 		--file=Dockerfile.production \
@@ -259,25 +275,32 @@ pull_node:
 	docker pull $(IMAGE_NODE)
 	docker tag $(IMAGE_NODE) node:14.15.1
 
-pull_cache_cold:
-	docker pull $(IMAGE_CACHE_COLD)$(R_TARGET)
-	docker tag $(IMAGE_CACHE_COLD)$(R_TARGET) $(IMAGE_CI)$(TARGET)-cache
+pull_cache_branch:
+	docker pull $(IMAGE_CACHE_BRANCH)
+	docker tag $(IMAGE_CACHE_BRANCH) $(IMAGE_CI)$(TARGET)-cache
 
-pull_cache_hot:
-	docker pull $(IMAGE_CACHE_HOT)$(R_TARGET)
-	docker tag $(IMAGE_CACHE_HOT)$(R_TARGET) $(IMAGE_CI)$(TARGET)-cache
+pull_cache_branch_gracefully:
+	make pull_cache_branch || echo 'cache miss'
 
 pull_cache:
-	make pull_cache_hot || make pull_cache_cold || echo 'cache miss'
+	docker pull $(IMAGE_CACHE_CONTENT_SHA)
+	docker tag $(IMAGE_CACHE_CONTENT_SHA) $(IMAGE_CI)$(TARGET)-cache
+
+pull_cache_gracefully:
+	make pull_cache || echo 'cache miss'
 
 clean_pull_cache:
 	docker rmi --force \
-		$(IMAGE_CACHE_COLD)$(R_TARGET) \
-		$(IMAGE_CACHE_HOT)$(R_TARGET) \
+		$(IMAGE_CACHE_CONTENT_SHA) \
+		$(IMAGE_CACHE_BRANCH) \
 
-push_cache_hot:
-	docker tag $(IMAGE_CI)$(TARGET) $(IMAGE_CACHE_HOT)$(R_TARGET)
-	docker push $(IMAGE_CACHE_HOT)$(R_TARGET)
+push_cache:
+	docker tag $(IMAGE_CI)$(TARGET) $(IMAGE_CACHE_CONTENT_SHA)
+	docker push $(IMAGE_CACHE_CONTENT_SHA)
+
+push_cache_branch:
+	docker tag $(IMAGE_CI)$(TARGET) $(IMAGE_CACHE_BRANCH)
+	docker push $(IMAGE_CACHE_BRANCH)
 
 push_target:
 	docker tag $(IMAGE_CI)$(TARGET) $(IMAGE)$(R_TARGET)
@@ -292,7 +315,8 @@ clean_push:
 	rm -f docker-image$(R_TARGET).digest.txt
 	docker rmi --force \
 		$(IMAGE)$(R_TARGET) \
-		$(IMAGE_CACHE_HOT)$(R_TARGET) \
+		$(IMAGE_CACHE_CONTENT_SHA) \
+		$(IMAGE_CACHE_BRANCH) \
 
 prepare_ci_stage: build_dev_with_cache
 build_dev_with_cache: pull_node

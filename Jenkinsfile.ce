@@ -53,7 +53,7 @@ pipeline {
                     R_TARGET = '-dev-deps'
                   }
                   steps {
-                    sh 'make pull_cache'
+                    sh 'make pull_cache_gracefully'
                   }
                   post {
                     cleanup {
@@ -76,7 +76,8 @@ pipeline {
                 R_TARGET = '-dev-deps'
               }
               steps {
-                sh 'make push_cache_hot'
+                sh 'make push_cache'
+                sh 'make push_cache_branch'
                 sh 'make push_target'
               }
               post {
@@ -153,7 +154,8 @@ pipeline {
               stages {
                 stage('Pull production cache') {
                   steps {
-                    sh 'make pull_cache'
+                    sh 'TARGET=-prod-base make pull_cache_gracefully'
+                    sh 'make pull_cache_branch_gracefully'
                   }
                   post {
                     cleanup {
@@ -174,7 +176,8 @@ pipeline {
                 }
                 stage('docker push') {
                   steps {
-                    sh 'make push_cache_hot'
+                    sh 'TARGET=-prod-base make push_cache'
+                    sh 'make push_cache_branch'
                     sh 'make push_target'
                     sh 'make log_image_digest'
                     archiveArtifacts 'docker-image.digest.txt'

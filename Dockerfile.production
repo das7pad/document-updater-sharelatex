@@ -3,9 +3,11 @@
 # https://github.com/das7pad/sharelatex-dev-env
 
 ARG BASE
-FROM $BASE
+FROM $BASE as prod-base
 
 RUN /docker_cleanup.sh npm ci --only=prod
+
+FROM prod-base
 
 ADD build_artifacts.tar.gz /app
 
