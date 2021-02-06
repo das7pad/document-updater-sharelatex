@@ -24,6 +24,7 @@
     "@overleaf/settings": "https://github.com/das7pad/settings-sharelatex/archive/e8942a2a7825619dbc8ab66797b90c684b5ccd2d.tar.gz",
     "async": "^2.5.0",
     "body-parser": "^1.19.0",
+    "diff-match-patch": "https://github.com/overleaf/diff-match-patch/archive/89805f9c671a77a263fc53461acd62aa7498f688.tar.gz",
     "express": "4.17.1",
     "lodash": "^4.17.19",
     "logger-sharelatex": "https://github.com/das7pad/logger-sharelatex/archive/1cb0c1714a91000f996d3aa49abfa6b5e7e0be58.tar.gz",
