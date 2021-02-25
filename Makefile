@@ -26,13 +26,13 @@ DOCKER_COMPOSE := docker-compose $(DOCKER_COMPOSE_FLAGS)
 export DOCKER_REGISTRY ?= local
 export SHARELATEX_DOCKER_REPOS ?= $(DOCKER_REGISTRY)/sharelatex
 
-export IMAGE_NODE ?= $(DOCKER_REGISTRY)/node:14.15.4
+export IMAGE_NODE ?= $(DOCKER_REGISTRY)/node:14.16.0
 export IMAGE_PROJECT ?= $(SHARELATEX_DOCKER_REPOS)/$(PROJECT_NAME)
 export IMAGE_BRANCH ?= $(IMAGE_PROJECT):$(BRANCH_NAME)
 export IMAGE ?= $(IMAGE_BRANCH)-$(BUILD_NUMBER)
 
 export CACHE_CONTENT_SHA := $(shell sh -c ' \
-	echo "14.15.4"; \
+	echo "14.16.0"; \
 	cat docker_cleanup.sh; \
 	cat package.json package-lock.json; \
 	' | sha256sum | cut -d' ' -f1)
@@ -282,7 +282,7 @@ endif
 
 pull_node:
 	docker pull $(IMAGE_NODE)
-	docker tag $(IMAGE_NODE) node:14.15.4
+	docker tag $(IMAGE_NODE) node:14.16.0
 
 pull_cache_branch:
 	docker pull $(IMAGE_CACHE_BRANCH)
