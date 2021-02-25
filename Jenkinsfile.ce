@@ -7,6 +7,9 @@ pipeline {
   environment {
     DOCKER_COMPOSE_FLAGS = "-f docker-compose.ci.yml"
   }
+  options {
+    timeout(time: 30, unit: 'MINUTES')
+  }
 
   stages {
     stage('Fan Out 1') {

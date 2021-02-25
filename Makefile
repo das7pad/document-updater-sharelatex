@@ -98,13 +98,18 @@ NEED_FULL_LINT ?= \
 
 ifeq (,$(NEED_FULL_LINT))
 lint: lint_partial
+lint_fix: lint_fix_partial
 else
 lint: lint_full
+lint_fix: lint_fix_full
 endif
 
 RUN_LINT ?= $(LINT_RUNNER) eslint
 lint_full:
 	$(RUN_LINT) .
+
+lint_fix_full:
+	$(RUN_LINT) --fix .
 
 GIT_DIFF_CMD_FORMAT ?= \
 	$(git) diff $(GIT_PREVIOUS_SUCCESSFUL_COMMIT) --name-only \
@@ -120,6 +125,11 @@ FILES_FOR_LINT ?= $(FILES_FOR_FORMAT)
 lint_partial:
 ifneq (,$(FILES_FOR_LINT))
 	$(RUN_LINT) $(FILES_FOR_LINT)
+endif
+
+lint_fix_partial:
+ifneq (,$(FILES_FOR_LINT))
+	$(RUN_LINT) --fix $(FILES_FOR_LINT)
 endif
 
 NEED_FULL_FORMAT ?= \
@@ -238,7 +248,6 @@ build_prod: clean_build_artifacts
 		$(TAR_CREATE_REPRODUCIBLE) \
 			app.js \
 			app/js \
-			app/lib \
 			config \
 	| gzip \
 	> build_artifacts.tar.gz

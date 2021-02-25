@@ -29,6 +29,8 @@ services:
       PUBSUB_REDIS_HOST: redis_pubsub
       NEW_HISTORY_REDIS_HOST: redis_new_history
       MOCHA_GREP: ${MOCHA_GREP}
+      NODE_ENV: test
+      NODE_OPTIONS: "--unhandled-rejections=strict --trace-deprecation"
     user: node
     depends_on:
       - mongo
