@@ -120,6 +120,9 @@ module.exports = {
         blockingKey({ doc_id: docId }) {
           return `Blocking:{${docId}}`
         },
+        docCore({ doc_id: docId }) {
+          return `docCore:{${docId}}`
+        },
         docLines({ doc_id: docId }) {
           return `doclines:{${docId}}`
         },
