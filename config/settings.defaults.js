@@ -162,6 +162,9 @@ module.exports = {
         pendingUpdates({ doc_id: docId }) {
           return `PendingUpdates:{${docId}}`
         },
+        lastUpdatedCtx({ doc_id: docId }) {
+          return `lastUpdatedCtx:{${docId}}`
+        },
         lastUpdatedBy({ doc_id: docId }) {
           return `lastUpdatedBy:{${docId}}`
         },
