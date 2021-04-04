@@ -1,30 +1,12 @@
 /* eslint-disable
     camelcase,
-    handle-callback-err,
-    no-return-assign,
-    no-undef,
-    no-unused-vars,
 */
-// TODO: This file was created by bulk-decaffeinate.
-// Fix any style issues and re-enable lint.
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS202: Simplify dynamic range loops
- * DS205: Consider reworking code to avoid use of IIFEs
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const DocUpdaterClient = require('../../acceptance/js/helpers/DocUpdaterClient')
-// MockTrackChangesApi = require "../../acceptance/js/helpers/MockTrackChangesApi"
-// MockWebApi = require "../../acceptance/js/helpers/MockWebApi"
 const assert = require('assert')
 const async = require('async')
 
 const insert = function (string, pos, content) {
-  const result = string.slice(0, pos) + content + string.slice(pos)
-  return result
+  return string.slice(0, pos) + content + string.slice(pos)
 }
 
 const transform = function (op1, op2) {
@@ -40,13 +22,7 @@ const transform = function (op1, op2) {
 
 class StressTestClient {
   constructor(options) {
-    if (options == null) {
-      options = {}
-    }
     this.options = options
-    if (this.options.updateDelay == null) {
-      this.options.updateDelay = 200
-    }
     this.project_id = this.options.project_id || DocUpdaterClient.randomId()
     this.doc_id = this.options.doc_id || DocUpdaterClient.randomId()
     this.pos = this.options.pos || 0
@@ -66,12 +42,12 @@ class StressTestClient {
 
     DocUpdaterClient.subscribeToAppliedOps((channel, update) => {
       update = JSON.parse(update)
-      if (update.error != null) {
+      if (update.error) {
         console.error(new Error(`Error from server: '${update.error}'`))
         return
       }
       if (update.doc_id === this.doc_id) {
-        return this.processReply(update)
+        this.processReply(update)
       }
     })
   }
@@ -84,11 +60,11 @@ class StressTestClient {
       p: this.pos++
     }
     this.resendUpdate()
-    return (this.inflight_op_sent = Date.now())
+    this.inflight_op_sent = Date.now()
   }
 
   resendUpdate() {
-    assert(this.inflight_op != null)
+    assert(this.inflight_op !== null)
     DocUpdaterClient.sendUpdate(this.project_id, this.doc_id, {
       doc: this.doc_id,
       op: [this.inflight_op],
@@ -98,15 +74,15 @@ class StressTestClient {
       },
       dupIfSource: [this.client_id]
     })
-    return (this.update_timer = setTimeout(() => {
+    this.update_timer = setTimeout(() => {
       console.log(
         `[${new Date()}] \t[${this.client_id.slice(
           0,
           4
         )}] WARN: Resending update after 5 seconds`
       )
-      return this.resendUpdate()
-    }, 5000))
+      this.resendUpdate()
+    }, 5000)
   }
 
   processReply(update) {
@@ -132,15 +108,15 @@ class StressTestClient {
     }
     this.version++
     if (update.op.meta.source === this.client_id) {
-      if (this.inflight_op != null) {
+      if (this.inflight_op !== null) {
         this.counts.local_updates++
         this.inflight_op = null
         clearTimeout(this.update_timer)
         const delay = Date.now() - this.inflight_op_sent
         this.counts.max_delay = Math.max(this.counts.max_delay, delay)
-        return this.continue()
+        this.continue()
       } else {
-        return console.log(
+        console.log(
           `[${new Date()}] \t[${this.client_id.slice(
             0,
             4
@@ -151,7 +127,7 @@ class StressTestClient {
       assert(update.op.op.length === 1)
       this.counts.remote_updates++
       let external_op = update.op.op[0]
-      if (this.inflight_op != null) {
+      if (this.inflight_op !== null) {
         this.counts.conflicts++
         this.inflight_op = transform(this.inflight_op, external_op)
         external_op = transform(external_op, this.inflight_op)
@@ -159,42 +135,36 @@ class StressTestClient {
       if (external_op.p < this.pos) {
         this.pos += external_op.i.length
       }
-      return (this.content = insert(this.content, external_op.p, external_op.i))
+      this.content = insert(this.content, external_op.p, external_op.i)
     }
   }
 
   continue() {
     if (this.updateCount > 0) {
       this.updateCount--
-      return setTimeout(() => {
-        return this.sendUpdate()
+      setTimeout(() => {
+        this.sendUpdate()
       }, this.options.updateDelay * (0.5 + Math.random()))
     } else {
-      return this.updateCallback()
+      this.updateCallback()
     }
   }
 
   runForNUpdates(n, callback) {
-    if (callback == null) {
-      callback = function (error) {}
-    }
     this.updateCallback = callback
     this.updateCount = n
-    return this.continue()
+    this.continue()
   }
 
   check(callback) {
-    if (callback == null) {
-      callback = function (error) {}
-    }
-    return DocUpdaterClient.getDoc(
+    DocUpdaterClient.getDoc(
       this.project_id,
       this.doc_id,
       (error, res, body) => {
-        if (error != null) {
+        if (error) {
           throw error
         }
-        if (body.lines == null) {
+        if (!body.lines) {
           return console.error(
             `[${new Date()}] \t[${this.client_id.slice(
               0,
@@ -231,19 +201,18 @@ class StressTestClient {
           const iterable = this.content.split('')
           for (let i = 0; i < iterable.length; i++) {
             const chunk = iterable[i]
-            if (chunk != null && chunk !== 'a') {
+            if (chunk && chunk !== 'a') {
               console.log(chunk, i)
             }
           }
           throw new Error('bad content')
         }
-        return callback()
+        callback()
       }
     )
   }
 
   isChunkValid(chunk) {
-    const char = 0
     for (let i = 0; i < chunk.length; i++) {
       const letter = chunk[i]
       if (letter.charCodeAt(0) !== 65 + (i % 26)) {
@@ -258,8 +227,8 @@ class StressTestClient {
   }
 
   isContentValid(content) {
-    for (const chunk of Array.from(content.split('a'))) {
-      if (chunk != null && chunk !== '') {
+    for (const chunk of content.split('a')) {
+      if (chunk) {
         if (!this.isChunkValid(chunk)) {
           console.error(
             `[${new Date()}] \t[${this.client_id.slice(0, 4)}] Invalid content`,
@@ -274,11 +243,8 @@ class StressTestClient {
 }
 
 const checkDocument = function (project_id, doc_id, clients, callback) {
-  if (callback == null) {
-    callback = function (error) {}
-  }
   const jobs = clients.map((client) => (cb) => client.check(cb))
-  return async.parallel(jobs, callback)
+  async.parallel(jobs, callback)
 }
 
 const printSummary = function (doc_id, clients) {
@@ -289,27 +255,40 @@ const printSummary = function (doc_id, clients) {
       clients.length
     } clients...`
   )
-  return (() => {
-    const result = []
-    for (const client of Array.from(clients)) {
-      console.log(
-        `[${now}] \t[${client.client_id.slice(0, 4)}] { local: ${
-          client.counts.local_updates
-        }, remote: ${client.counts.remote_updates}, conflicts: ${
-          client.counts.conflicts
-        }, max_delay: ${client.counts.max_delay} }`
-      )
-      result.push(
-        (client.counts = {
-          local_updates: 0,
-          remote_updates: 0,
-          conflicts: 0,
-          max_delay: 0
-        })
-      )
+
+  for (const client of clients) {
+    console.log(
+      `[${now}] \t[${client.client_id.slice(0, 4)}] { local: ${
+        client.counts.local_updates
+      }, remote: ${client.counts.remote_updates}, conflicts: ${
+        client.counts.conflicts
+      }, max_delay: ${client.counts.max_delay} }`
+    )
+    client.counts = {
+      local_updates: 0,
+      remote_updates: 0,
+      conflicts: 0,
+      max_delay: 0
     }
-    return result
-  })()
+  }
+}
+
+function runBatch(project_id, doc_id, clients) {
+  const jobs = clients.map((client) => (cb) =>
+    client.runForNUpdates(SAMPLE_INTERVAL / UPDATE_DELAY, cb)
+  )
+  async.parallel(jobs, (error) => {
+    if (error) {
+      throw error
+    }
+    printSummary(doc_id, clients)
+    checkDocument(project_id, doc_id, clients, (error) => {
+      if (error) {
+        throw error
+      }
+      runBatch(project_id, doc_id, clients)
+    })
+  })
 }
 
 const CLIENT_COUNT = parseInt(process.argv[2], 10)
@@ -317,76 +296,49 @@ const UPDATE_DELAY = parseInt(process.argv[3], 10)
 const SAMPLE_INTERVAL = parseInt(process.argv[4], 10)
 
 for (const doc_and_project_id of Array.from(process.argv.slice(5))) {
-  ;(function (doc_and_project_id) {
-    const [project_id, doc_id] = Array.from(doc_and_project_id.split(':'))
-    console.log({ project_id, doc_id })
-    return DocUpdaterClient.setDocLines(
-      project_id,
-      doc_id,
-      [new Array(CLIENT_COUNT + 2).join('a')],
-      null,
-      null,
-      false,
-      (error) => {
-        if (error != null) {
+  const [project_id, doc_id] = Array.from(doc_and_project_id.split(':'))
+  console.log({ project_id, doc_id })
+
+  DocUpdaterClient.setDocLines(
+    project_id,
+    doc_id,
+    [new Array(CLIENT_COUNT + 2).join('a')],
+    null,
+    null,
+    false,
+    (error) => {
+      if (error) {
+        throw error
+      }
+      DocUpdaterClient.getDoc(project_id, doc_id, (error, res, body) => {
+        if (error) {
           throw error
         }
-        return DocUpdaterClient.getDoc(
-          project_id,
-          doc_id,
-          (error, res, body) => {
-            let runBatch
-            if (error != null) {
-              throw error
-            }
-            if (body.lines == null) {
-              return console.error(
-                `[${new Date()}] ERROR: Invalid response from get doc (${doc_id})`,
-                body
-              )
-            }
-            const content = body.lines.join('\n')
-            const { version } = body
+        if (!body.lines) {
+          console.error(
+            `[${new Date()}] ERROR: Invalid response from get doc (${doc_id})`,
+            body
+          )
+          throw Error('cannot continue without content')
+        }
+        const content = body.lines.join('\n')
+        const { version } = body
 
-            const clients = []
-            for (
-              let pos = 1, end = CLIENT_COUNT, asc = end >= 1;
-              asc ? pos <= end : pos >= end;
-              asc ? pos++ : pos--
-            ) {
-              ;(function (pos) {
-                const client = new StressTestClient({
-                  doc_id,
-                  project_id,
-                  content,
-                  pos,
-                  version,
-                  updateDelay: UPDATE_DELAY
-                })
-                return clients.push(client)
-              })(pos)
-            }
+        const clients = []
+        for (let pos = 0; pos < CLIENT_COUNT; pos++) {
+          const client = new StressTestClient({
+            doc_id,
+            project_id,
+            content,
+            pos,
+            version,
+            updateDelay: UPDATE_DELAY
+          })
+          clients.push(client)
+        }
 
-            return (runBatch = function () {
-              const jobs = clients.map((client) => (cb) =>
-                client.runForNUpdates(SAMPLE_INTERVAL / UPDATE_DELAY, cb)
-              )
-              return async.parallel(jobs, (error) => {
-                if (error != null) {
-                  throw error
-                }
-                printSummary(doc_id, clients)
-                return checkDocument(project_id, doc_id, clients, (error) => {
-                  if (error != null) {
-                    throw error
-                  }
-                  return runBatch()
-                })
-              })
-            })()
-          }
-        )
-      }
-    )
-  })(doc_and_project_id)
+        runBatch(project_id, doc_id, clients)
+      })
+    }
+  )
 }
