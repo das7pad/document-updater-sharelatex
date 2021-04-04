@@ -199,7 +199,7 @@ class StressTestClient {
             `[${new Date()}] \t[${this.client_id.slice(
               0,
               4
-            )}] ERROR: Invalid response from get doc (${doc_id})`,
+            )}] ERROR: Invalid response from get doc (${this.doc_id})`,
             body
           )
         }
