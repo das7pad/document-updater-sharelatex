@@ -478,13 +478,11 @@ module.exports = Model = function (db, options) {
         return callback(error)
       }
 
-      return process.nextTick(() =>
-        doc.opQueue(opData, function (error, newVersion) {
-          return typeof callback === 'function'
-            ? callback(error, newVersion)
-            : undefined
-        })
-      )
+      doc.opQueue(opData, function (error, newVersion) {
+        return typeof callback === 'function'
+          ? callback(error, newVersion)
+          : undefined
+      })
     })
 }
 
