@@ -44,7 +44,6 @@ const isArray = (o) => Object.prototype.toString.call(o) === '[object Array]'
 module.exports = Model = function (db, options) {
   // db can be null if the user doesn't want persistance.
 
-  let getOps
   if (!(this instanceof Model)) {
     return new Model(db, options)
   }
@@ -626,7 +625,8 @@ module.exports = Model = function (db, options) {
   //
   // Use getVersion() to determine if a document actually exists, if thats what you're
   // after.
-  this.getOps = getOps = function (docName, start, end, callback) {
+  this.getOps = getOps
+  function getOps(docName, start, end, callback) {
     // getOps will only use the op cache if its there. It won't fill the op cache in.
     if (!(start >= 0)) {
       throw new Error('start must be 0+')
