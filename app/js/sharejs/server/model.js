@@ -617,14 +617,6 @@ module.exports = Model = function (db, options) {
       )
     )
 
-  // Gets the latest version # of the document.
-  // getVersion(docName, callback)
-  // callback is called with (error, version).
-  this.getVersion = (docName, callback) =>
-    load(docName, (error, doc) =>
-      callback(error, doc != null ? doc.v : undefined)
-    )
-
   // Apply an op to the specified document.
   // The callback is passed (error, applied version #)
   // opData = {op:op, v:v, meta:metadata}
