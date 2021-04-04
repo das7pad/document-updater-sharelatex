@@ -247,6 +247,19 @@ const checkDocument = function (project_id, doc_id, clients, callback) {
   async.parallel(jobs, callback)
 }
 
+let WARMUP_CUTOFF = 100
+const GLOBAL_COUNTS = {
+  n: 0,
+  conflicts: 0,
+  max_delay: 0
+}
+function avg(field) {
+  const value = GLOBAL_COUNTS[field] / GLOBAL_COUNTS.n
+  let [prefix, suffix] = (value.toString() + '.').split('.')
+  prefix = prefix.padStart(3, ' ')
+  suffix = suffix.slice(0, 3).padEnd(3, '0')
+  return `avg_${field}: ${prefix}.${suffix}`
+}
 const printSummary = function (doc_id, clients) {
   const slot = require('cluster-key-slot')
   const now = new Date()
@@ -264,6 +277,11 @@ const printSummary = function (doc_id, clients) {
         client.counts.conflicts
       }, max_delay: ${client.counts.max_delay} }`
     )
+    if (--WARMUP_CUTOFF < 0) {
+      GLOBAL_COUNTS.n += 1
+      GLOBAL_COUNTS.conflicts += client.counts.conflicts
+      GLOBAL_COUNTS.max_delay += client.counts.max_delay
+    }
     client.counts = {
       local_updates: 0,
       remote_updates: 0,
@@ -271,6 +289,13 @@ const printSummary = function (doc_id, clients) {
       max_delay: 0
     }
   }
+  console.log(
+    `[${now}] global: {`,
+    `n: ${GLOBAL_COUNTS.n.toString().padStart(5, ' ')},`,
+    avg('conflicts') + ',',
+    avg('max_delay'),
+    '}'
+  )
 }
 
 function runBatch(project_id, doc_id, clients) {
