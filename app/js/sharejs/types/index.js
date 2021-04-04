@@ -15,11 +15,4 @@ const register = function (file) {
 }
 
 // Import all the built-in types.
-register('./simple')
-register('./count')
-
 register('./text')
-register('./text-composable')
-register('./text-tp2')
-
-register('./json')
