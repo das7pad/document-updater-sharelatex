@@ -9,7 +9,6 @@ are `text` and `json`.
 All OT types have the following fields:
 
 `name`: _(string)_ Name of the type. Should match the filename.
-`create() -> snapshot`: Function which creates and returns a new document snapshot
 
 `apply(snapshot, op) -> snapshot`: A function which creates a new document snapshot with the op applied
 `transform(op1, op2, side) -> op1'`: OT transform function.

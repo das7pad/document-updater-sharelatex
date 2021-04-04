@@ -36,9 +36,6 @@ const types = require('../types')
 // - It maintains (in memory) a set of all active documents
 // - It calls out to the OT functions when necessary
 //
-// The model is an event emitter. It emits the following events:
-//
-// create(docName, data): A document has been created with the specified name & data
 module.exports = Model = function (db, options) {
   // db can be null if the user doesn't want persistance.
 
@@ -465,61 +462,6 @@ module.exports = Model = function (db, options) {
   }
 
   // *** Model interface methods
-
-  // Create a new document.
-  //
-  // data should be {snapshot, type, [meta]}. The version of a new document is 0.
-  this.create = function (docName, type, meta, callback) {
-    if (typeof meta === 'function') {
-      ;[meta, callback] = Array.from([{}, meta])
-    }
-
-    if (docName.match(/\//)) {
-      return typeof callback === 'function'
-        ? callback('Invalid document name')
-        : undefined
-    }
-    if (docs[docName]) {
-      return typeof callback === 'function'
-        ? callback('Document already exists')
-        : undefined
-    }
-
-    if (typeof type === 'string') {
-      type = types[type]
-    }
-    if (!type) {
-      return typeof callback === 'function'
-        ? callback('Type not found')
-        : undefined
-    }
-
-    const data = {
-      snapshot: type.create(),
-      type: type.name,
-      meta: meta || {},
-      v: 0
-    }
-
-    const done = function (error, dbMeta) {
-      // dbMeta can be used to cache extra state needed by the database to access the document, like an ID or something.
-      if (error) {
-        return typeof callback === 'function' ? callback(error) : undefined
-      }
-
-      // From here on we'll store the object version of the type name.
-      data.type = type
-      add(docName, null, data, 0, [], dbMeta)
-      model.emit('create', docName, data)
-      return typeof callback === 'function' ? callback() : undefined
-    }
-
-    if (db) {
-      return db.create(docName, data, done)
-    } else {
-      return done()
-    }
-  }
 
   // This gets all operations from [start...end]. (That is, its not inclusive.)
   //

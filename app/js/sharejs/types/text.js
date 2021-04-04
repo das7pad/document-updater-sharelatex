@@ -36,8 +36,6 @@ const text = {}
 
 text.name = 'text'
 
-text.create = () => ''
-
 const strInject = (s1, pos, s2) => s1.slice(0, pos) + s2 + s1.slice(pos)
 
 const checkValidComponent = function (c) {
