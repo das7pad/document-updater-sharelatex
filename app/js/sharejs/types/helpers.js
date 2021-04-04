@@ -106,7 +106,3 @@ exports._bt = bootstrapTransform = function (
     }
   })
 }
-
-if (typeof WEB === 'undefined') {
-  exports.bootstrapTransform = bootstrapTransform
-}
