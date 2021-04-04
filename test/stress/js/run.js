@@ -16,7 +16,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const DocUpdaterClient = require('../../acceptance/coffee/helpers/DocUpdaterClient')
+const DocUpdaterClient = require('../../acceptance/js/helpers/DocUpdaterClient')
 // MockTrackChangesApi = require "../../acceptance/js/helpers/MockTrackChangesApi"
 // MockWebApi = require "../../acceptance/js/helpers/MockWebApi"
 const assert = require('assert')
@@ -326,6 +326,7 @@ for (const doc_and_project_id of Array.from(process.argv.slice(5))) {
       [new Array(CLIENT_COUNT + 2).join('a')],
       null,
       null,
+      false,
       (error) => {
         if (error != null) {
           throw error
