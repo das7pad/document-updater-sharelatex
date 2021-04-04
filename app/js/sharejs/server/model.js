@@ -231,8 +231,6 @@ module.exports = Model = function (db, options) {
             return callback(error)
           }
 
-          __guardMethod__(options.stats, 'writeOp', (o) => o.writeOp())
-
           // This is needed when we emit the 'change' event, below.
           const oldSnapshot = doc.snapshot
 
@@ -358,9 +356,6 @@ module.exports = Model = function (db, options) {
   const load = function (docName, callback) {
     if (docs[docName]) {
       // The document is already loaded. Return immediately.
-      __guardMethod__(options.stats, 'cacheHit', (o) =>
-        o.cacheHit('getSnapshot')
-      )
       return callback(null, docs[docName])
     }
 
@@ -375,10 +370,6 @@ module.exports = Model = function (db, options) {
     if (callbacks) {
       return callbacks.push(callback)
     }
-
-    __guardMethod__(options.stats, 'cacheMiss', (o1) =>
-      o1.cacheMiss('getSnapshot')
-    )
 
     // The document isn't loaded and isn't being loaded. Load it.
     awaitingGetSnapshot[docName] = [callback]
@@ -495,8 +486,6 @@ module.exports = Model = function (db, options) {
     }
 
     doc.snapshotWriteLock = true
-
-    __guardMethod__(options.stats, 'writeSnapshot', (o) => o.writeSnapshot())
 
     const writeSnapshot =
       (db != null ? db.writeSnapshot : undefined) ||
@@ -657,16 +646,9 @@ module.exports = Model = function (db, options) {
       // If the database is null, we'll trim to the ops we do have and hope thats enough.
       if (start >= base || db === null) {
         refreshReapingTimeout(docName)
-        if (options.stats != null) {
-          options.stats.cacheHit('getOps')
-        }
 
         return callback(null, ops.slice(start - base, end - base))
       }
-    }
-
-    if (options.stats != null) {
-      options.stats.cacheMiss('getOps')
     }
 
     return getOpsInternal(docName, start, end, callback)
