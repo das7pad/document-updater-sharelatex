@@ -24,7 +24,6 @@
 let Model
 const { EventEmitter } = require('events')
 
-const queue = require('./syncqueue')
 const types = require('../types')
 
 // This constructor creates a new Model object. There will be one model object
@@ -121,8 +120,8 @@ module.exports = Model = function (db, options) {
 
   // Its important that all ops are applied in order. This helper method creates the op submission queue
   // for a single document. This contains the logic for transforming & applying ops.
-  const makeOpQueue = (docName, doc) =>
-    queue(function (opData, callback) {
+  const makeOpProcessor = (docName, doc) =>
+    function (opData, callback) {
       if (!(opData.v >= 0)) {
         return callback('Version missing')
       }
@@ -248,7 +247,7 @@ module.exports = Model = function (db, options) {
           callback(null, opData.v)
         })
       })
-    })
+    }
 
   // Add the data for the given docName to the cache. The named document shouldn't already
   // exist in the doc set.
@@ -287,7 +286,7 @@ module.exports = Model = function (db, options) {
         dbMeta
       }
 
-      doc.opQueue = makeOpQueue(docName, doc)
+      doc.processOp = makeOpProcessor(docName, doc)
 
       model.emit('add', docName, data)
       if (callbacks) {
@@ -478,7 +477,7 @@ module.exports = Model = function (db, options) {
         return callback(error)
       }
 
-      doc.opQueue(opData, function (error, newVersion) {
+      doc.processOp(opData, function (error, newVersion) {
         return typeof callback === 'function'
           ? callback(error, newVersion)
           : undefined
