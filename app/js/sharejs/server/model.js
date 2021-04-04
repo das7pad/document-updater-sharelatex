@@ -685,25 +685,7 @@ module.exports = Model = function (db, options) {
       }
     })
   }
-
-  // Close the database connection. This is needed so nodejs can shut down cleanly.
-  this.closeDb = function () {
-    __guardMethod__(db, 'close', (o) => o.close())
-    return (db = null)
-  }
 }
 
 // Model inherits from EventEmitter.
 Model.prototype = new EventEmitter()
-
-function __guardMethod__(obj, methodName, transform) {
-  if (
-    typeof obj !== 'undefined' &&
-    obj !== null &&
-    typeof obj[methodName] === 'function'
-  ) {
-    return transform(obj, methodName)
-  } else {
-    return undefined
-  }
-}
