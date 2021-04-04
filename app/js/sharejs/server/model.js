@@ -312,7 +312,6 @@ module.exports = Model = function (db, options) {
 
       doc.opQueue = makeOpQueue(docName, doc)
 
-      refreshReapingTimeout(docName)
       model.emit('add', docName, data)
       if (callbacks) {
         for (callback of Array.from(callbacks)) {
@@ -414,51 +413,6 @@ module.exports = Model = function (db, options) {
         model.emit('load', docName, data)
         return add(docName, error, data, committedVersion, ops, dbMeta)
       })
-    })
-  }
-
-  // This makes sure the cache contains a document. If the doc cache doesn't contain
-  // a document, it is loaded from the database and stored.
-  //
-  // Documents are stored so long as either:
-  // - They have been accessed within the past #{PERIOD}
-  // - At least one client has the document open
-  var refreshReapingTimeout = function (docName) {
-    const doc = docs[docName]
-    if (!doc) {
-      return
-    }
-
-    // I want to let the clients list be updated before this is called.
-    return process.nextTick(function () {
-      // This is an awkward way to find out the number of clients on a document. If this
-      // causes performance issues, add a numClients field to the document.
-      //
-      // The first check is because its possible that between refreshReapingTimeout being called and this
-      // event being fired, someone called delete() on the document and hence the doc is something else now.
-      if (
-        doc === docs[docName] &&
-        doc.eventEmitter.listeners('op').length === 0 &&
-        (db || options.forceReaping) &&
-        doc.opQueue.busy === false
-      ) {
-        let reapTimer
-        clearTimeout(doc.reapTimer)
-        return (doc.reapTimer = reapTimer = setTimeout(
-          () =>
-            tryWriteSnapshot(docName, function () {
-              // If the reaping timeout has been refreshed while we're writing the snapshot, or if we're
-              // in the middle of applying an operation, don't reap.
-              if (
-                docs[docName].reapTimer === reapTimer &&
-                doc.opQueue.busy === false
-              ) {
-                return delete docs[docName]
-              }
-            }),
-          options.reapTime
-        ))
-      }
     })
   }
 
@@ -645,8 +599,6 @@ module.exports = Model = function (db, options) {
 
       // If the database is null, we'll trim to the ops we do have and hope thats enough.
       if (start >= base || db === null) {
-        refreshReapingTimeout(docName)
-
         return callback(null, ops.slice(start - base, end - base))
       }
     }
@@ -694,7 +646,6 @@ module.exports = Model = function (db, options) {
 
       return process.nextTick(() =>
         doc.opQueue(opData, function (error, newVersion) {
-          refreshReapingTimeout(docName)
           return typeof callback === 'function'
             ? callback(error, newVersion)
             : undefined
@@ -817,7 +768,7 @@ module.exports = Model = function (db, options) {
     }
 
     doc.eventEmitter.removeListener('op', listener)
-    return refreshReapingTimeout(docName)
+    return
   }
 
   // Flush saves all snapshot data to the database. I'm not sure whether or not this is actually needed -
