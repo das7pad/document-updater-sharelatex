@@ -771,37 +771,6 @@ module.exports = Model = function (db, options) {
     return
   }
 
-  // Flush saves all snapshot data to the database. I'm not sure whether or not this is actually needed -
-  // sharejs will happily replay uncommitted ops when documents are re-opened anyway.
-  this.flush = function (callback) {
-    if (!db) {
-      return typeof callback === 'function' ? callback() : undefined
-    }
-
-    let pendingWrites = 0
-
-    for (const docName in docs) {
-      const doc = docs[docName]
-      if (doc.committedVersion < doc.v) {
-        pendingWrites++
-        // I'm hoping writeSnapshot will always happen in another thread.
-        tryWriteSnapshot(docName, () =>
-          process.nextTick(function () {
-            pendingWrites--
-            if (pendingWrites === 0) {
-              return typeof callback === 'function' ? callback() : undefined
-            }
-          })
-        )
-      }
-    }
-
-    // If nothing was queued, terminate immediately.
-    if (pendingWrites === 0) {
-      return typeof callback === 'function' ? callback() : undefined
-    }
-  }
-
   // Close the database connection. This is needed so nodejs can shut down cleanly.
   this.closeDb = function () {
     __guardMethod__(db, 'close', (o) => o.close())
