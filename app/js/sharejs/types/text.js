@@ -371,9 +371,90 @@ module.exports = text
 // The text type really shouldn't need this - it should be possible to define
 // an efficient transform function by making a sort of transform map and passing each
 // op component through it.
-require('./helpers').bootstrapTransform(
-  text,
-  transformComponent,
-  checkValidOp,
-  append
-)
+// NOTE: Previously this line was a call into helper.js
+// NOTE: As text.js is the only call-site into helper.js, the later is inlined
+//        for simplicity.
+
+// These methods let you build a transform function from a transformComponent function
+// for OT types like text and JSON in which operations are lists of components
+// and transforming them requires N^2 work.
+
+// Add transform and transformX functions for an OT type which has transformComponent defined.
+// transformComponent(destination array, component, other component, side)
+function transformComponentX(left, right, destLeft, destRight) {
+  transformComponent(destLeft, left, right, 'left')
+  transformComponent(destRight, right, left, 'right')
+}
+
+// Transforms rightOp by leftOp. Returns ['rightOp', clientOp']
+text.transformX = transformX
+function transformX(leftOp, rightOp) {
+  checkValidOp(leftOp)
+  checkValidOp(rightOp)
+
+  const newRightOp = []
+
+  for (let rightComponent of rightOp) {
+    // Generate newLeftOp by composing leftOp by rightComponent
+    const newLeftOp = []
+
+    let k = 0
+    while (k < leftOp.length) {
+      const nextC = []
+      transformComponentX(leftOp[k], rightComponent, newLeftOp, nextC)
+      k++
+
+      if (nextC.length === 1) {
+        rightComponent = nextC[0]
+      } else if (nextC.length === 0) {
+        for (const l of leftOp.slice(k)) {
+          append(newLeftOp, l)
+        }
+        rightComponent = null
+        break
+      } else {
+        // Recurse.
+        const [l_, r_] = transformX(leftOp.slice(k), nextC)
+        for (const l of l_) {
+          append(newLeftOp, l)
+        }
+        for (const r of r_) {
+          append(newRightOp, r)
+        }
+        rightComponent = null
+        break
+      }
+    }
+
+    if (rightComponent != null) {
+      append(newRightOp, rightComponent)
+    }
+    leftOp = newLeftOp
+  }
+
+  return [leftOp, newRightOp]
+}
+
+// Transforms op with specified type ('left' or 'right') by otherOp.
+text.transform = function (op, otherOp, type) {
+  if (type !== 'left' && type !== 'right') {
+    throw new Error("type must be 'left' or 'right'")
+  }
+
+  if (otherOp.length === 0) {
+    return op
+  }
+
+  // TODO: Benchmark with and without this line. I _think_ it'll make a big difference...?
+  if (op.length === 1 && otherOp.length === 1) {
+    return transformComponent([], op[0], otherOp[0], type)
+  }
+
+  if (type === 'left') {
+    const [left] = transformX(op, otherOp)
+    return left
+  } else {
+    const [, right] = transformX(otherOp, op)
+    return right
+  }
+}
