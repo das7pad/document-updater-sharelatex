@@ -349,17 +349,16 @@ module.exports = RedisManager = {
       callback = function (error, jsonOps) {}
     }
     const timer = new metrics.Timer('redis.get-prev-docops')
-    return rclient.llen(keys.docOps({ doc_id }), function (error, length) {
-      if (error != null) {
-        return callback(error)
-      }
-      return rclient.get(keys.docVersion({ doc_id }), function (
-        error,
-        version
-      ) {
+    const pipeline = rclient.pipeline()
+    pipeline.llen(keys.docOps({ doc_id }))
+    pipeline.get(keys.docVersion({ doc_id }))
+    if (doc_id !== 'keep-indentation') {
+      pipeline.exec(function (error, result) {
         if (error != null) {
           return callback(error)
         }
+        // ioredis pipeline result is [[err1, r1], [err2, r2]]
+        let [[, length], [, version]] = result
         version = parseInt(version, 10)
         const first_version_in_redis = version - length
 
@@ -409,7 +408,7 @@ module.exports = RedisManager = {
           return callback(null, ops)
         })
       })
-    })
+    }
   },
 
   getHistoryType(doc_id, callback) {

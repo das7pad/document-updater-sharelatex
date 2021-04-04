@@ -333,10 +333,14 @@ describe('RedisManager', function () {
         this.end = 60
         this.ops = [{ mock: 'op-1' }, { mock: 'op-2' }]
         this.jsonOps = this.ops.map((op) => JSON.stringify(op))
-        this.rclient.llen = sinon.stub().callsArgWith(1, null, this.length)
-        this.rclient.get = sinon
-          .stub()
-          .callsArgWith(1, null, this.version.toString())
+        this.pipeline = {}
+        this.rclient.pipeline = sinon.stub().returns(this.pipeline)
+        this.pipeline.llen = sinon.stub()
+        this.pipeline.get = sinon.stub()
+        this.pipeline.exec = sinon.stub().yields(null, [
+          [null, this.length],
+          [null, this.version.toString()]
+        ])
         this.rclient.lrange = sinon.stub().callsArgWith(3, null, this.jsonOps)
         return this.RedisManager.getPreviousDocOps(
           this.doc_id,
@@ -347,13 +351,13 @@ describe('RedisManager', function () {
       })
 
       it('should get the length of the existing doc ops', function () {
-        return this.rclient.llen
+        return this.pipeline.llen
           .calledWith(`DocOps:${this.doc_id}`)
           .should.equal(true)
       })
 
       it('should get the current version of the doc', function () {
-        return this.rclient.get
+        return this.pipeline.get
           .calledWith(`DocVersion:${this.doc_id}`)
           .should.equal(true)
       })
@@ -382,10 +386,14 @@ describe('RedisManager', function () {
         this.end = -1
         this.ops = [{ mock: 'op-1' }, { mock: 'op-2' }]
         this.jsonOps = this.ops.map((op) => JSON.stringify(op))
-        this.rclient.llen = sinon.stub().callsArgWith(1, null, this.length)
-        this.rclient.get = sinon
-          .stub()
-          .callsArgWith(1, null, this.version.toString())
+        this.pipeline = {}
+        this.rclient.pipeline = sinon.stub().returns(this.pipeline)
+        this.pipeline.llen = sinon.stub()
+        this.pipeline.get = sinon.stub()
+        this.pipeline.exec = sinon.stub().yields(null, [
+          [null, this.length],
+          [null, this.version.toString()]
+        ])
         this.rclient.lrange = sinon.stub().callsArgWith(3, null, this.jsonOps)
         return this.RedisManager.getPreviousDocOps(
           this.doc_id,
@@ -419,10 +427,14 @@ describe('RedisManager', function () {
         this.end = -1
         this.ops = [{ mock: 'op-1' }, { mock: 'op-2' }]
         this.jsonOps = this.ops.map((op) => JSON.stringify(op))
-        this.rclient.llen = sinon.stub().callsArgWith(1, null, this.length)
-        this.rclient.get = sinon
-          .stub()
-          .callsArgWith(1, null, this.version.toString())
+        this.pipeline = {}
+        this.rclient.pipeline = sinon.stub().returns(this.pipeline)
+        this.pipeline.llen = sinon.stub()
+        this.pipeline.get = sinon.stub()
+        this.pipeline.exec = sinon.stub().yields(null, [
+          [null, this.length],
+          [null, this.version.toString()]
+        ])
         this.rclient.lrange = sinon.stub().callsArgWith(3, null, this.jsonOps)
         return this.RedisManager.getPreviousDocOps(
           this.doc_id,
@@ -452,10 +464,14 @@ describe('RedisManager', function () {
         this.end = 60
         this.ops = [{ mock: 'op-1' }, { mock: 'op-2' }]
         this.jsonOps = this.ops.map((op) => JSON.stringify(op))
-        this.rclient.llen = sinon.stub().callsArgWith(1, null, this.length)
-        this.rclient.get = sinon
-          .stub()
-          .callsArgWith(1, null, this.version.toString())
+        this.pipeline = {}
+        this.rclient.pipeline = sinon.stub().returns(this.pipeline)
+        this.pipeline.llen = sinon.stub()
+        this.pipeline.get = sinon.stub()
+        this.pipeline.exec = sinon.stub().yields(null, [
+          [null, this.length],
+          [null, this.version.toString()]
+        ])
         this.clock = sinon.useFakeTimers()
         this.rclient.lrange = (key, start, end, cb) => {
           this.clock.tick(6000)
