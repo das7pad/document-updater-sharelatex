@@ -32,7 +32,6 @@
 // NOTE: The global scope here is shared with other sharejs files when built with closure.
 // Be careful what ends up in your namespace.
 
-let append, transformComponent
 const text = {}
 
 text.name = 'text'
@@ -106,7 +105,8 @@ text.apply = function (snapshot, op) {
 //
 // For simplicity, this version of append does not compress adjacent inserts and deletes of
 // the same text. It would be nice to change that at some stage.
-text._append = append = function (newOp, c) {
+text._append = append
+function append(newOp, c) {
   if (c.i === '' || c.d === '') {
     return
   }
@@ -227,7 +227,8 @@ text.transformCursor = function (position, op, side) {
 // The result will be appended to destination.
 //
 // exported for use in JSON type
-text._tc = transformComponent = function (dest, c, otherC, side) {
+text._tc = transformComponent
+function transformComponent(dest, c, otherC, side) {
   let cIntersect, intersectEnd, intersectStart, newC, otherIntersect
   checkValidOp([c])
   checkValidOp([otherC])
