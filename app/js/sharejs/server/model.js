@@ -246,24 +246,6 @@ module.exports = Model = function (db, options) {
           // The callback is called with the version of the document at which the op was applied.
           // This is the op.v after transformation, and its doc.v - 1.
           callback(null, opData.v)
-
-          // I need a decent strategy here for deciding whether or not to save the snapshot.
-          //
-          // The 'right' strategy looks something like "Store the snapshot whenever the snapshot
-          // is smaller than the accumulated op data". For now, I'll just store it every 20
-          // ops or something. (Configurable with doc.committedVersion)
-          if (
-            !doc.snapshotWriteLock &&
-            doc.committedVersion + options.opsBeforeCommit <= doc.v
-          ) {
-            return tryWriteSnapshot(docName, function (error) {
-              if (error) {
-                return console.warn(
-                  `Error writing snapshot ${error}. This is nonfatal`
-                )
-              }
-            })
-          }
         })
       })
     })
@@ -408,56 +390,6 @@ module.exports = Model = function (db, options) {
         model.emit('load', docName, data)
         return add(docName, error, data, committedVersion, ops, dbMeta)
       })
-    })
-  }
-
-  var tryWriteSnapshot = function (docName, callback) {
-    if (!db) {
-      return typeof callback === 'function' ? callback() : undefined
-    }
-
-    const doc = docs[docName]
-
-    // The doc is closed
-    if (!doc) {
-      return typeof callback === 'function' ? callback() : undefined
-    }
-
-    // The document is already saved.
-    if (doc.committedVersion === doc.v) {
-      return typeof callback === 'function' ? callback() : undefined
-    }
-
-    if (doc.snapshotWriteLock) {
-      return typeof callback === 'function'
-        ? callback('Another snapshot write is in progress')
-        : undefined
-    }
-
-    doc.snapshotWriteLock = true
-
-    const writeSnapshot =
-      (db != null ? db.writeSnapshot : undefined) ||
-      ((docName, docData, dbMeta, callback) => callback())
-
-    const data = {
-      v: doc.v,
-      meta: doc.meta,
-      snapshot: doc.snapshot,
-      // The database doesn't know about object types.
-      type: doc.type.name
-    }
-
-    // Commit snapshot.
-    return writeSnapshot(docName, data, doc.dbMeta, function (error, dbMeta) {
-      doc.snapshotWriteLock = false
-
-      // We have to use data.v here because the version in the doc could
-      // have been updated between the call to writeSnapshot() and now.
-      doc.committedVersion = data.v
-      doc.dbMeta = dbMeta
-
-      return typeof callback === 'function' ? callback(error) : undefined
     })
   }
 
