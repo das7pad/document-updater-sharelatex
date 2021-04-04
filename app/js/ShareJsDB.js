@@ -74,12 +74,4 @@ module.exports = ShareJsDB = class ShareJsDB {
       })
     }
   }
-
-  // To be able to remove a doc from the ShareJS memory
-  // we need to called Model::delete, which calls this
-  // method on the database. However, we will handle removing
-  // it from Redis ourselves
-  delete(docName, dbMeta, callback) {
-    return callback()
-  }
 }

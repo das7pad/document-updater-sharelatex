@@ -521,36 +521,6 @@ module.exports = Model = function (db, options) {
     }
   }
 
-  // Perminantly deletes the specified document.
-  // If listeners are attached, they are removed.
-  //
-  // The callback is called with (error) if there was an error. If error is null / undefined, the
-  // document was deleted.
-  //
-  // WARNING: This isn't well supported throughout the code. (Eg, streaming clients aren't told about the
-  // deletion. Subsequent op submissions will fail).
-  this.delete = function (docName, callback) {
-    const doc = docs[docName]
-
-    if (doc) {
-      clearTimeout(doc.reapTimer)
-      delete docs[docName]
-    }
-
-    const done = function (error) {
-      if (!error) {
-        model.emit('delete', docName)
-      }
-      return typeof callback === 'function' ? callback(error) : undefined
-    }
-
-    if (db) {
-      return db.delete(docName, doc != null ? doc.dbMeta : undefined, done)
-    } else {
-      return done(!doc ? 'Document does not exist' : undefined)
-    }
-  }
-
   // This gets all operations from [start...end]. (That is, its not inclusive.)
   //
   // end can be null. This means 'get me all ops from start'.
