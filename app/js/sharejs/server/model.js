@@ -27,8 +27,6 @@ const { EventEmitter } = require('events')
 const queue = require('./syncqueue')
 const types = require('../types')
 
-const isArray = (o) => Object.prototype.toString.call(o) === '[object Array]'
-
 // This constructor creates a new Model object. There will be one model object
 // per server context.
 //
@@ -652,39 +650,6 @@ module.exports = Model = function (db, options) {
         })
       )
     })
-
-  // TODO: store (some) metadata in DB
-  // TODO: op and meta should be combineable in the op that gets sent
-  this.applyMetaOp = function (docName, metaOpData, callback) {
-    const { path, value } = metaOpData.meta
-
-    if (!isArray(path)) {
-      return typeof callback === 'function'
-        ? callback('path should be an array')
-        : undefined
-    }
-
-    return load(docName, function (error, doc) {
-      if (error != null) {
-        return typeof callback === 'function' ? callback(error) : undefined
-      } else {
-        let applied = false
-        switch (path[0]) {
-          case 'shout':
-            doc.eventEmitter.emit('op', metaOpData)
-            applied = true
-            break
-        }
-
-        if (applied) {
-          model.emit('applyMetaOp', docName, path, value)
-        }
-        return typeof callback === 'function'
-          ? callback(null, doc.v)
-          : undefined
-      }
-    })
-  }
 }
 
 // Model inherits from EventEmitter.
