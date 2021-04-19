@@ -36,62 +36,16 @@ pipeline {
           agent {
             label 'sharelatex && docker_builder'
           }
-          stages {
-            stage('Prepare environment') {
-              stages {
-                stage('Pull node image') {
-                  steps {
-                    sh 'make pull_node'
-                  }
-                }
-                stage('Clean Previous artifacts') {
-                  steps {
-                    sh 'make clean_output'
-                    sh 'git clean -xdf'
-                  }
-                }
-                stage('Pull Cache') {
-                  environment {
-                    TARGET = '-dev-deps'
-                    R_TARGET = '-dev-deps'
-                  }
-                  steps {
-                    sh 'make pull_cache_gracefully'
-                  }
-                  post {
-                    cleanup {
-                      sh 'make clean_pull_cache'
-                    }
-                  }
-                }
-              }
-            }
-
-            stage('Build dev-deps') {
-              steps {
-                sh 'make build_dev_deps'
-              }
-            }
-
-            stage('Push dev-deps') {
-              environment {
-                TARGET = '-dev-deps'
-                R_TARGET = '-dev-deps'
-              }
-              steps {
-                sh 'make push_cache'
-                sh 'make push_cache_branch'
-              }
-              post {
-                cleanup {
-                  sh 'make clean_push_dev_deps'
-                }
-              }
-            }
+          environment {
+            TARGET = '-dev-deps'
+            R_TARGET = '-dev-deps'
+          }
+          steps {
+            sh 'make build_dev_deps_unless_exists'
           }
           post {
             cleanup {
-              sh 'make clean_docker_images'
+              sh 'make clean_build_dev_deps_unless_exists'
             }
           }
         }

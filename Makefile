@@ -334,6 +334,33 @@ clean_push_dev_deps:
 		$(IMAGE_CACHE_CONTENT_SHA) \
 		$(IMAGE_CACHE_BRANCH) \
 
+check_image_exists:
+	curl \
+		--fail \
+		--head \
+		--silent \
+		https://$(DOCKER_REGISTRY)/v2/sharelatex/$(PROJECT_NAME)/manifests/cache-$(CACHE_CONTENT_SHA)$(R_TARGET) \
+	> /dev/null
+
+build_dev_deps_unless_exists:
+	make check_image_exists || make build_and_publish
+
+build_and_publish:
+	make pull_node
+	make pull_cache_gracefully
+	make clean_pull_cache
+	make build_dev_deps
+	make push_cache
+	make push_cache_branch
+
+clean_build_dev_deps_unless_exists:
+	docker rmi --force \
+		$(IMAGE_CI)-base \
+		$(IMAGE_CI)-dev-deps \
+		$(IMAGE_CI)-dev-deps-cache \
+		$(IMAGE_CACHE_CONTENT_SHA) \
+		$(IMAGE_CACHE_BRANCH) \
+
 prepare_ci_stage: build_dev_with_cache
 build_dev_with_cache: pull_node
 build_dev_with_cache:
