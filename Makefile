@@ -155,11 +155,11 @@ format_fix_full:
 	$(RUN_FORMAT) '$(PWD)/**/*.{js,less}' --write
 
 format_partial:
-ifneq (,$(FILES_FOR_LINT))
+ifneq (,$(FILES_FOR_FORMAT))
 	$(RUN_FORMAT) $(FILES_FOR_FORMAT) --list-different
 endif
 format_fix_partial:
-ifneq (,$(FILES_FOR_LINT))
+ifneq (,$(FILES_FOR_FORMAT))
 	$(RUN_FORMAT) $(FILES_FOR_FORMAT) --write
 endif
 
