@@ -12,7 +12,25 @@ pipeline {
   }
 
   stages {
-    stage('Fan Out 1') {
+    stage('App Image') {
+      agent {
+        label 'sharelatex && docker_builder'
+      }
+      environment {
+        TARGET = '-dev-deps'
+        R_TARGET = '-dev-deps'
+      }
+      steps {
+        sh 'make build_dev_deps_unless_exists'
+      }
+      post {
+        cleanup {
+          sh 'make clean_build_dev_deps_unless_exists'
+        }
+      }
+    }
+
+    stage('Fan out') {
       parallel {
         stage('Lint') {
           agent {
@@ -32,28 +50,6 @@ pipeline {
           }
         }
 
-        stage('App Image') {
-          agent {
-            label 'sharelatex && docker_builder'
-          }
-          environment {
-            TARGET = '-dev-deps'
-            R_TARGET = '-dev-deps'
-          }
-          steps {
-            sh 'make build_dev_deps_unless_exists'
-          }
-          post {
-            cleanup {
-              sh 'make clean_build_dev_deps_unless_exists'
-            }
-          }
-        }
-      }
-    }
-
-    stage('Fan out 2') {
-      parallel {
         stage('Unit Tests') {
           agent {
             label 'sharelatex'
