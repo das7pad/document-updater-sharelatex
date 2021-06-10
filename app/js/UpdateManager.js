@@ -155,7 +155,7 @@ module.exports = UpdateManager = {
         RealTimeRedisManager.sendData({
           project_id,
           doc_id,
-          error: error.message || error
+          error: { message: typeof error === 'string' ? error : error.message }
         })
         profile.log('sendData')
       }
