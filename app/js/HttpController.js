@@ -66,9 +66,18 @@ function getDoc(req, res, next) {
       if (lines == null || version == null) {
         return next(new Errors.NotFoundError('document not found'))
       }
+      if (fromVersion !== -1) {
+        lines = []
+      }
+      let snapshot
+      if (req.query.snapshot === 'true') {
+        snapshot = lines.join('\n')
+        lines = undefined
+      }
       res.json({
         id: docId,
         lines,
+        snapshot,
         version,
         ops,
         ranges,
