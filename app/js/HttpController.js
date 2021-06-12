@@ -10,6 +10,7 @@ const DeleteQueueManager = require('./DeleteQueueManager')
 const async = require('async')
 
 module.exports = {
+  checkDocExists,
   getDoc,
   getProjectDocsAndFlushIfOld,
   clearProjectState,
@@ -25,6 +26,18 @@ module.exports = {
   resyncProjectHistory,
   flushAllProjects,
   flushQueuedProjects
+}
+
+function checkDocExists(req, res, next) {
+  const docId = req.params.doc_id
+  const projectId = req.params.project_id
+  DocumentManager.getDoc(projectId, docId, (err, lines, version) => {
+    if (err) return next(err)
+    if (lines == null || version == null) {
+      return next(new Errors.NotFoundError())
+    }
+    res.sendStatus(204)
+  })
 }
 
 function getDoc(req, res, next) {

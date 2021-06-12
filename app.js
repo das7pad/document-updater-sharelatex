@@ -48,6 +48,10 @@ app.param('doc_id', (req, res, next, docId) => {
   }
 })
 
+app.get(
+  '/project/:project_id/doc/:doc_id/exists',
+  HttpController.checkDocExists
+)
 app.get('/project/:project_id/doc/:doc_id', HttpController.getDoc)
 // temporarily keep the GET method for backwards compatibility
 app.get('/project/:project_id/doc', HttpController.getProjectDocsAndFlushIfOld)
