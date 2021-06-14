@@ -76,6 +76,7 @@ describe('HttpController', function () {
         this.res.json
           .calledWith({
             id: this.doc_id,
+            snapshot: undefined,
             lines: this.lines,
             version: this.version,
             ops: [],
@@ -126,7 +127,8 @@ describe('HttpController', function () {
         this.res.json
           .calledWith({
             id: this.doc_id,
-            lines: this.lines,
+            lines: [],
+            snapshot: undefined,
             version: this.version,
             ops: this.ops,
             ranges: this.ranges,

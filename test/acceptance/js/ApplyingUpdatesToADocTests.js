@@ -598,10 +598,12 @@ describe('Applying updates to a doc', function () {
       this.messageCallback.called.should.equal(true)
       const [channel, message] = Array.from(this.messageCallback.args[0])
       channel.should.equal('applied-ops')
-      return JSON.parse(message).should.deep.include({
+      const msg = JSON.parse(message)
+      delete msg._id
+      msg.should.deep.equal({
         project_id: this.project_id,
         doc_id: this.doc_id,
-        error: 'Delete component does not match'
+        error: { message: 'Delete component does not match' }
       })
     })
   })
@@ -840,10 +842,14 @@ describe('Applying updates to a doc', function () {
       this.messageCallback.called.should.equal(true)
       const [channel, message] = Array.from(this.messageCallback.args[0])
       channel.should.equal('applied-ops')
-      return JSON.parse(message).should.deep.include({
+      const msg = JSON.parse(message)
+      delete msg._id
+      msg.should.deep.equal({
         project_id: this.project_id,
         doc_id: this.doc_id,
-        error: `doc not not found: /project/${this.project_id}/doc/${this.doc_id}`
+        error: {
+          message: `doc not not found: /project/${this.project_id}/doc/${this.doc_id}`
+        }
       })
     })
   })

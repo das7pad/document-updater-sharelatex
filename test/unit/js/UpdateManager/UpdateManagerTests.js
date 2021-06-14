@@ -468,7 +468,7 @@ describe('UpdateManager', function () {
           .calledWith({
             project_id: this.project_id,
             doc_id: this.doc_id,
-            error: this.error.message
+            error: { message: this.error.message }
           })
           .should.equal(true)
       })
