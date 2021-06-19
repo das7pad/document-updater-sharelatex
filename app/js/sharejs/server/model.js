@@ -43,11 +43,6 @@ module.exports = Model = function (db, options) {
     options = {}
   }
 
-  // The number of operations the cache holds before reusing the space
-  if (options.numCachedOps == null) {
-    options.numCachedOps = 10
-  }
-
   // Until I come up with a better strategy, we'll save a copy of the document snapshot
   // to the database every ~20 submitted ops.
   if (options.opsBeforeCommit == null) {
@@ -157,17 +152,7 @@ module.exports = Model = function (db, options) {
           return callback('Internal error')
         }
 
-        // All the heavy lifting is now done. Finally, we'll update the cache with the new data
-        // and (maybe!) save a new document snapshot to the database.
-
         doc.v = opData.v + 1
-        doc.snapshot = snapshot
-
-        doc.ops.push(opData)
-        if (db && doc.ops.length > options.numCachedOps) {
-          doc.ops.shift()
-        }
-
         callback(null, doc.v, opData, snapshot)
       })
     }
