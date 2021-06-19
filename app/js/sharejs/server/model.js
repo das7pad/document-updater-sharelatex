@@ -34,13 +34,9 @@ const types = require('../types')
 // - It maintains (in memory) a set of all active documents
 // - It calls out to the OT functions when necessary
 //
-module.exports = Model = function (db, options) {
+module.exports = Model = function (db) {
   if (!(this instanceof Model)) {
-    return new Model(db, options)
-  }
-
-  if (options == null) {
-    options = {}
+    return new Model(db)
   }
 
   // **** Cache API methods
@@ -105,13 +101,6 @@ module.exports = Model = function (db, options) {
           error = error2
           console.error(error.stack)
           return callback(error.message)
-        }
-
-        if (
-          options.maxDocLength != null &&
-          snapshot.length > options.maxDocLength
-        ) {
-          return callback('Update takes doc over max doc size')
         }
 
         // The op data should be at the current version, and the new document data should be at

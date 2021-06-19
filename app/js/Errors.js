@@ -47,9 +47,12 @@ class DuplicateOpError extends OError {
 
 class InvalidVersionError extends OError {}
 
+class TooLargeError extends OError {}
+
 module.exports = Errors = {
   DuplicateOpError,
   InvalidVersionError,
+  TooLargeError,
   NotFoundError,
   OpRangeNotAvailableError,
   ProjectStateChangedError,

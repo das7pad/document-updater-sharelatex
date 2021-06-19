@@ -45,9 +45,7 @@ function checkVersion(incoming, current) {
 module.exports = ShareJsUpdateManager = {
   getNewShareJsModel(project_id, doc_id, lines, version) {
     const db = new ShareJsDB(project_id, doc_id, lines, version)
-    const model = new ShareJsModel(db, {
-      maxDocLength: Settings.max_doc_length
-    })
+    const model = new ShareJsModel(db)
     model.db = db
     return model
   },
@@ -104,6 +102,14 @@ module.exports = ShareJsUpdateManager = {
           return callback(error)
         }
       }
+
+      if (snapshot.length > Settings.max_doc_length) {
+        metrics.inc('sharejs.other-error')
+        return callback(
+          new Errors.TooLargeError('Update takes doc over max doc size')
+        )
+      }
+
       logger.log({ project_id, doc_id, error }, 'applied update')
       RealTimeRedisManager.sendData({ project_id, doc_id, op })
 
