@@ -133,7 +133,7 @@ module.exports = Model = function (db, options) {
 
         if (
           options.maxDocLength != null &&
-          doc.snapshot.length > options.maxDocLength
+          snapshot.length > options.maxDocLength
         ) {
           return callback('Update takes doc over max doc size')
         }
