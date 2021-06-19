@@ -43,30 +43,12 @@ module.exports = Model = function (db, options) {
     options = {}
   }
 
-  // It takes some processing time to transform client ops. The server will punt ops back to the
-  // client to transform if they're too old.
-  if (options.maximumAge == null) {
-    options.maximumAge = 40
-  }
-
   // **** Cache API methods
 
   // Its important that all ops are applied in order. This helper method creates the op submission queue
   // for a single document. This contains the logic for transforming & applying ops.
   const makeOpProcessor = (docName, doc) =>
     function (opData, callback) {
-      if (!(opData.v >= 0)) {
-        return callback('Version missing')
-      }
-      if (opData.v > doc.v) {
-        return callback('Op at future version')
-      }
-
-      // Punt the transforming work back to the client if the op is too old.
-      if (opData.v + options.maximumAge < doc.v) {
-        return callback('Op too old')
-      }
-
       if (!opData.meta) {
         opData.meta = {}
       }

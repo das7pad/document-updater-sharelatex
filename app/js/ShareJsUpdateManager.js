@@ -30,12 +30,23 @@ util.inherits(ShareJsModel, EventEmitter)
 
 const MAX_AGE_OF_OP = 80
 
+function checkVersion(incoming, current) {
+  if (!(incoming >= 0)) {
+    return new Errors.InvalidVersionError('Version missing')
+  }
+  if (incoming > current) {
+    return new Errors.InvalidVersionError('Op at future version')
+  }
+  if (incoming + MAX_AGE_OF_OP < current) {
+    return new Errors.InvalidVersionError('Op too old')
+  }
+}
+
 module.exports = ShareJsUpdateManager = {
   getNewShareJsModel(project_id, doc_id, lines, version) {
     const db = new ShareJsDB(project_id, doc_id, lines, version)
     const model = new ShareJsModel(db, {
-      maxDocLength: Settings.max_doc_length,
-      maximumAge: MAX_AGE_OF_OP
+      maxDocLength: Settings.max_doc_length
     })
     model.db = db
     return model
@@ -49,6 +60,13 @@ module.exports = ShareJsUpdateManager = {
     const jobs = []
     // record the update version before it is modified
     const incomingUpdateVersion = update.v
+
+    const err = checkVersion(incomingUpdateVersion, version)
+    if (err) {
+      metrics.inc('sharejs.other-error')
+      return callback(err)
+    }
+
     // We could use a global model for all docs, but we're hitting issues with the
     // internal state of ShareJS not being accessible for clearing caches, and
     // getting stuck due to queued callbacks (line 260 of sharejs/server/model.coffee)
