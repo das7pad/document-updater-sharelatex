@@ -43,12 +43,6 @@ module.exports = Model = function (db, options) {
     options = {}
   }
 
-  // Until I come up with a better strategy, we'll save a copy of the document snapshot
-  // to the database every ~20 submitted ops.
-  if (options.opsBeforeCommit == null) {
-    options.opsBeforeCommit = 20
-  }
-
   // It takes some processing time to transform client ops. The server will punt ops back to the
   // client to transform if they're too old.
   if (options.maximumAge == null) {
