@@ -56,7 +56,6 @@ module.exports = Model = function (db, options) {
   //   type
   //   v
   //   meta
-  //   eventEmitter
   //   committedVersion: v
   //   snapshotWriteLock: bool to make sure writeSnapshot isn't re-entrant
   //   dbMeta: database specific data
@@ -223,7 +222,6 @@ module.exports = Model = function (db, options) {
           }
 
           model.emit('applyOp', docName, opData, snapshot, oldSnapshot)
-          doc.eventEmitter.emit('op', opData, snapshot, oldSnapshot)
 
           // The callback is called with the version of the document at which the op was applied.
           // This is the op.v after transformation, and its doc.v - 1.
@@ -256,8 +254,6 @@ module.exports = Model = function (db, options) {
 
         // Cache of ops
         ops: ops || [],
-
-        eventEmitter: new EventEmitter(),
 
         // Version of the snapshot thats in the database
         committedVersion: committedVersion != null ? committedVersion : data.v,
