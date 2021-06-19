@@ -45,39 +45,6 @@ module.exports = Model = function (db, options) {
     options = {}
   }
 
-  // This is a cache of 'live' documents.
-  //
-  // The cache is a map from docName -> {
-  //   ops:[{op, meta}]
-  //   snapshot
-  //   type
-  //   v
-  //   meta
-  //   committedVersion: v
-  //   snapshotWriteLock: bool to make sure writeSnapshot isn't re-entrant
-  //   dbMeta: database specific data
-  //   opQueue: syncQueue for processing ops
-  // }
-  //
-  // The ops list contains the document's last options.numCachedOps ops. (Or all
-  // of them if we're using a memory store).
-  //
-  // Documents are stored in this set so long at least one client has the document
-  // open. I don't know if I should keep open (but not being edited) documents live -
-  // maybe if a client has a document open but the document isn't being edited, I should
-  // flush it from the cache.
-  //
-  // In any case, the API to model is designed such that if we want to change that later
-  // it should be pretty easy to do so without any external-to-the-model code changes.
-  const docs = {}
-
-  // This is a map from docName -> [callback]. It is used when a document hasn't been
-  // cached and multiple getSnapshot() / getVersion() requests come in. All requests
-  // are added to the callback list and called when db.getSnapshot() returns.
-  //
-  // callback(error, snapshot data)
-  const awaitingGetSnapshot = {}
-
   // The number of operations the cache holds before reusing the space
   if (options.numCachedOps == null) {
     options.numCachedOps = 10
@@ -120,7 +87,7 @@ module.exports = Model = function (db, options) {
 
       // We'll need to transform the op to the current version of the document. This
       // calls the callback immediately if opVersion == doc.v.
-      return getOps(docName, opData.v, doc.v, function (error, ops) {
+      getOps(doc, docName, opData.v, doc.v, function (error, ops) {
         let snapshot
         if (error) {
           return callback(error)
@@ -224,43 +191,25 @@ module.exports = Model = function (db, options) {
   // exist in the doc set.
   //
   // Returns the new doc.
-  const add = function (docName, error, data, committedVersion, ops, dbMeta) {
-    let callback, doc
-    const callbacks = awaitingGetSnapshot[docName]
-    delete awaitingGetSnapshot[docName]
+  function add(docName, callback, data, committedVersion, ops, dbMeta) {
+    const doc = {
+      snapshot: data.snapshot,
+      v: data.v,
+      type: data.type,
+      meta: data.meta,
 
-    if (error) {
-      if (callbacks) {
-        for (callback of Array.from(callbacks)) {
-          callback(error)
-        }
-      }
-    } else {
-      doc = docs[docName] = {
-        snapshot: data.snapshot,
-        v: data.v,
-        type: data.type,
-        meta: data.meta,
+      // Cache of ops
+      ops: ops || [],
 
-        // Cache of ops
-        ops: ops || [],
-
-        // Version of the snapshot thats in the database
-        committedVersion: committedVersion != null ? committedVersion : data.v,
-        snapshotWriteLock: false,
-        dbMeta
-      }
-
-      doc.processOp = makeOpProcessor(docName, doc)
-
-      if (callbacks) {
-        for (callback of Array.from(callbacks)) {
-          callback(null, doc)
-        }
-      }
+      // Version of the snapshot thats in the database
+      committedVersion: committedVersion != null ? committedVersion : data.v,
+      snapshotWriteLock: false,
+      dbMeta
     }
 
-    return doc
+    doc.processOp = makeOpProcessor(docName, doc)
+
+    callback(null, doc)
   }
 
   // This is a little helper wrapper around db.getOps. It does two things:
@@ -293,28 +242,9 @@ module.exports = Model = function (db, options) {
   //
   // The callback is called with (error, doc)
   const load = function (docName, callback) {
-    if (docs[docName]) {
-      // The document is already loaded. Return immediately.
-      return callback(null, docs[docName])
-    }
-
-    // We're a memory store. If we don't have it, nobody does.
-    if (!db) {
-      return callback('Document does not exist')
-    }
-
-    const callbacks = awaitingGetSnapshot[docName]
-
-    // The document is being loaded already. Add ourselves as a callback.
-    if (callbacks) {
-      return callbacks.push(callback)
-    }
-
-    // The document isn't loaded and isn't being loaded. Load it.
-    awaitingGetSnapshot[docName] = [callback]
-    return db.getSnapshot(docName, function (error, data, dbMeta) {
+    db.getSnapshot(docName, function (error, data, dbMeta) {
       if (error) {
-        return add(docName, error)
+        return callback(error)
       }
 
       const type = types[data.type]
@@ -350,7 +280,7 @@ module.exports = Model = function (db, options) {
           }
         }
 
-        return add(docName, error, data, committedVersion, ops, dbMeta)
+        return add(docName, callback, data, committedVersion, ops, dbMeta)
       })
     })
   }
@@ -372,21 +302,15 @@ module.exports = Model = function (db, options) {
   //
   // Use getVersion() to determine if a document actually exists, if thats what you're
   // after.
-  this.getOps = getOps
-  function getOps(docName, start, end, callback) {
+  function getOps(doc, docName, start, end, callback) {
     // getOps will only use the op cache if its there. It won't fill the op cache in.
     if (!(start >= 0)) {
       throw new Error('start must be 0+')
     }
-
-    if (typeof end === 'function') {
-      ;[end, callback] = Array.from([null, end])
-    }
-
-    const ops = docs[docName] != null ? docs[docName].ops : undefined
+    const ops = doc.ops
 
     if (ops) {
-      const version = docs[docName].v
+      const version = doc.v
 
       // Ops contains an array of ops. The last op in the list is the last op applied
       if (end == null) {
