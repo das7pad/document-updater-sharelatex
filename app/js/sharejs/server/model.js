@@ -57,7 +57,6 @@ module.exports = Model = function (db, options) {
   //   v
   //   meta
   //   eventEmitter
-  //   reapTimer
   //   committedVersion: v
   //   snapshotWriteLock: bool to make sure writeSnapshot isn't re-entrant
   //   dbMeta: database specific data
@@ -67,8 +66,7 @@ module.exports = Model = function (db, options) {
   // The ops list contains the document's last options.numCachedOps ops. (Or all
   // of them if we're using a memory store).
   //
-  // Documents are stored in this set so long as the document has been accessed in
-  // the last few seconds (options.reapTime) OR at least one client has the document
+  // Documents are stored in this set so long at least one client has the document
   // open. I don't know if I should keep open (but not being edited) documents live -
   // maybe if a client has a document open but the document isn't being edited, I should
   // flush it from the cache.
@@ -84,24 +82,9 @@ module.exports = Model = function (db, options) {
   // callback(error, snapshot data)
   const awaitingGetSnapshot = {}
 
-  // The time that documents which no clients have open will stay in the cache.
-  // Should be > 0.
-  if (options.reapTime == null) {
-    options.reapTime = 3000
-  }
-
   // The number of operations the cache holds before reusing the space
   if (options.numCachedOps == null) {
     options.numCachedOps = 10
-  }
-
-  // This option forces documents to be reaped, even when there's no database backend.
-  // This is useful when you don't care about persistance and don't want to gradually
-  // fill memory.
-  //
-  // You might want to set reapTime to a day or something.
-  if (options.forceReaping == null) {
-    options.forceReaping = false
   }
 
   // Until I come up with a better strategy, we'll save a copy of the document snapshot
@@ -275,10 +258,6 @@ module.exports = Model = function (db, options) {
         ops: ops || [],
 
         eventEmitter: new EventEmitter(),
-
-        // Timer before the document will be invalidated from the cache (if the document has no
-        // listeners)
-        reapTimer: null,
 
         // Version of the snapshot thats in the database
         committedVersion: committedVersion != null ? committedVersion : data.v,
