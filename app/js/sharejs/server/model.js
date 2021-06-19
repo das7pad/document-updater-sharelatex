@@ -410,19 +410,6 @@ module.exports = Model = function (db, options) {
     return getOpsInternal(docName, start, end, callback)
   }
 
-  // Gets the snapshot data for the specified document.
-  // getSnapshot(docName, callback)
-  // Callback is called with (error, {v: <version>, type: <type>, snapshot: <snapshot>, meta: <meta>})
-  this.getSnapshot = (docName, callback) =>
-    load(docName, (error, doc) =>
-      callback(
-        error,
-        doc
-          ? { v: doc.v, type: doc.type, snapshot: doc.snapshot, meta: doc.meta }
-          : undefined
-      )
-    )
-
   // Apply an op to the specified document.
   // The callback is passed (error, applied version #)
   // opData = {op:op, v:v, meta:metadata}
