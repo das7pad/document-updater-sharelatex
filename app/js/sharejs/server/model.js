@@ -35,8 +35,6 @@ const types = require('../types')
 // - It calls out to the OT functions when necessary
 //
 module.exports = Model = function (db, options) {
-  // db can be null if the user doesn't want persistance.
-
   if (!(this instanceof Model)) {
     return new Model(db, options)
   }
@@ -159,31 +157,18 @@ module.exports = Model = function (db, options) {
           return callback('Internal error')
         }
 
-        // newDocData = {snapshot, type:type.name, v:opVersion + 1, meta:docData.meta}
-        const writeOp =
-          (db != null ? db.writeOp : undefined) ||
-          ((docName, newOpData, callback) => callback())
+        // All the heavy lifting is now done. Finally, we'll update the cache with the new data
+        // and (maybe!) save a new document snapshot to the database.
 
-        return writeOp(docName, opData, function (error) {
-          if (error) {
-            // The user should probably know about this.
-            console.warn(`Error writing ops to database: ${error}`)
-            return callback(error)
-          }
+        doc.v = opData.v + 1
+        doc.snapshot = snapshot
 
-          // All the heavy lifting is now done. Finally, we'll update the cache with the new data
-          // and (maybe!) save a new document snapshot to the database.
+        doc.ops.push(opData)
+        if (db && doc.ops.length > options.numCachedOps) {
+          doc.ops.shift()
+        }
 
-          doc.v = opData.v + 1
-          doc.snapshot = snapshot
-
-          doc.ops.push(opData)
-          if (db && doc.ops.length > options.numCachedOps) {
-            doc.ops.shift()
-          }
-
-          callback(null, doc.v, opData, snapshot)
-        })
+        callback(null, doc.v, opData, snapshot)
       })
     }
 
@@ -218,12 +203,6 @@ module.exports = Model = function (db, options) {
   // - It adds version numbers to each op returned from the database
   // (These can be inferred from context so the DB doesn't store them, but its useful to have them).
   const getOpsInternal = function (docName, start, end, callback) {
-    if (!db) {
-      return typeof callback === 'function'
-        ? callback('Document does not exist')
-        : undefined
-    }
-
     return db.getOps(docName, start, end, function (error, ops) {
       if (error) {
         return typeof callback === 'function' ? callback(error) : undefined
@@ -326,7 +305,7 @@ module.exports = Model = function (db, options) {
       const base = version - ops.length
 
       // If the database is null, we'll trim to the ops we do have and hope thats enough.
-      if (start >= base || db === null) {
+      if (start >= base) {
         return callback(null, ops.slice(start - base, end - base))
       }
     }
