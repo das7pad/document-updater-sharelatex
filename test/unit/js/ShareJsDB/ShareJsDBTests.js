@@ -137,12 +137,6 @@ describe('ShareJsDB', function () {
         return this.db.writeOp(this.doc_key, this.opData, this.callback)
       })
 
-      it('should write into appliedOps', function () {
-        return expect(this.db.appliedOps[this.doc_key]).to.deep.equal([
-          this.opData
-        ])
-      })
-
       return it('should call the callback without an error', function () {
         this.callback.called.should.equal(true)
         return (this.callback.args[0][0] != null).should.equal(false)

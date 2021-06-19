@@ -22,7 +22,6 @@
 // Actual storage is handled by the database wrappers in db/*, wrapped by DocCache
 
 let Model
-const { EventEmitter } = require('events')
 
 const types = require('../types')
 
@@ -41,8 +40,6 @@ module.exports = Model = function (db, options) {
   if (!(this instanceof Model)) {
     return new Model(db, options)
   }
-
-  const model = this
 
   if (options == null) {
     options = {}
@@ -207,9 +204,6 @@ module.exports = Model = function (db, options) {
             return callback(error)
           }
 
-          // This is needed when we emit the 'change' event, below.
-          const oldSnapshot = doc.snapshot
-
           // All the heavy lifting is now done. Finally, we'll update the cache with the new data
           // and (maybe!) save a new document snapshot to the database.
 
@@ -221,11 +215,7 @@ module.exports = Model = function (db, options) {
             doc.ops.shift()
           }
 
-          model.emit('applyOp', docName, opData, snapshot, oldSnapshot)
-
-          // The callback is called with the version of the document at which the op was applied.
-          // This is the op.v after transformation, and its doc.v - 1.
-          callback(null, opData.v)
+          callback(null, doc.v, opData, snapshot)
         })
       })
     }
@@ -263,7 +253,6 @@ module.exports = Model = function (db, options) {
 
       doc.processOp = makeOpProcessor(docName, doc)
 
-      model.emit('add', docName, data)
       if (callbacks) {
         for (callback of Array.from(callbacks)) {
           callback(null, doc)
@@ -361,7 +350,6 @@ module.exports = Model = function (db, options) {
           }
         }
 
-        model.emit('load', docName, data)
         return add(docName, error, data, committedVersion, ops, dbMeta)
       })
     })
@@ -452,13 +440,6 @@ module.exports = Model = function (db, options) {
         return callback(error)
       }
 
-      doc.processOp(opData, function (error, newVersion) {
-        return typeof callback === 'function'
-          ? callback(error, newVersion)
-          : undefined
-      })
+      doc.processOp(opData, callback)
     })
 }
-
-// Model inherits from EventEmitter.
-Model.prototype = new EventEmitter()

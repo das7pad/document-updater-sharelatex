@@ -22,7 +22,6 @@ module.exports = ShareJsDB = class ShareJsDB {
     this.doc_id = doc_id
     this.lines = lines
     this.version = version
-    this.appliedOps = {}
     // ShareJS calls this detacted from the instance, so we need
     // bind it to keep our context that can access @appliedOps
     this.writeOp = this._writeOp.bind(this)
@@ -47,10 +46,6 @@ module.exports = ShareJsDB = class ShareJsDB {
   }
 
   _writeOp(doc_key, opData, callback) {
-    if (this.appliedOps[doc_key] == null) {
-      this.appliedOps[doc_key] = []
-    }
-    this.appliedOps[doc_key].push(opData)
     return callback()
   }
 

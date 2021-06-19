@@ -4,6 +4,8 @@
 */
 // TODO: This file was created by bulk-decaffeinate.
 // Fix any style issues and re-enable lint.
+const OError = require('@overleaf/o-error')
+
 let Errors
 var NotFoundError = function (message) {
   const error = new Error(message)
@@ -37,7 +39,14 @@ var DeleteMismatchError = function (message) {
 }
 DeleteMismatchError.prototype.__proto__ = Error.prototype
 
+class DuplicateOpError extends OError {
+  constructor() {
+    super('Op already submitted')
+  }
+}
+
 module.exports = Errors = {
+  DuplicateOpError,
   NotFoundError,
   OpRangeNotAvailableError,
   ProjectStateChangedError,

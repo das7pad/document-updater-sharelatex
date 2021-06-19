@@ -193,6 +193,10 @@ module.exports = UpdateManager = {
         function (error, updatedDocLines, version, appliedOps) {
           profile.log('sharejs.applyUpdate')
           if (error != null) {
+            if (error instanceof Errors.DuplicateOpError) {
+              // Skip over duplicate ops.
+              error = null
+            }
             return callback(error)
           }
           return RangesManager.applyUpdate(

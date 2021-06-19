@@ -55,9 +55,8 @@ module.exports = ShareJsUpdateManager = {
     // This adds a small but hopefully acceptable overhead (~12ms per 1000 updates on
     // my 2009 MBP).
     const model = this.getNewShareJsModel(project_id, doc_id, lines, version)
-    this._listenForOps(model)
     const doc_key = Keys.combineProjectIdAndDocId(project_id, doc_id)
-    return model.applyOp(doc_key, update, function (error) {
+    model.applyOp(doc_key, update, (error, docVersion, op, snapshot) => {
       if (error != null) {
         if (error === 'Op already submitted') {
           metrics.inc('sharejs.already-submitted')
@@ -65,8 +64,13 @@ module.exports = ShareJsUpdateManager = {
             { project_id, doc_id, update },
             'op has already been submitted'
           )
-          update.dup = true
-          ShareJsUpdateManager._sendOp(project_id, doc_id, update)
+          const minOp = {
+            doc: doc_id,
+            v: update.v,
+            dup: true
+          }
+          RealTimeRedisManager.sendData({ project_id, doc_id, op: minOp })
+          return callback(new Errors.DuplicateOpError())
         } else if (/^Delete component/.test(error)) {
           metrics.inc('sharejs.delete-mismatch')
           logger.warn(
@@ -83,42 +87,22 @@ module.exports = ShareJsUpdateManager = {
         }
       }
       logger.log({ project_id, doc_id, error }, 'applied update')
-      return model.getSnapshot(doc_key, (error, data) => {
-        if (error != null) {
-          return callback(error)
-        }
-        // only check hash when present and no other updates have been applied
-        if (update.hash != null && incomingUpdateVersion === version) {
-          const ourHash = ShareJsUpdateManager._computeHash(data.snapshot)
-          if (ourHash !== update.hash) {
-            metrics.inc('sharejs.hash-fail')
-            return callback(new Error('Invalid hash'))
-          } else {
-            metrics.inc('sharejs.hash-pass', 0.001)
-          }
-        }
-        const docLines = data.snapshot.split(/\r\n|\n|\r/)
-        return callback(
-          null,
-          docLines,
-          data.v,
-          model.db.appliedOps[doc_key] || []
-        )
-      })
-    })
-  },
+      RealTimeRedisManager.sendData({ project_id, doc_id, op })
 
-  _listenForOps(model) {
-    return model.on('applyOp', function (doc_key, opData) {
-      const [project_id, doc_id] = Array.from(
-        Keys.splitProjectIdAndDocId(doc_key)
-      )
-      return ShareJsUpdateManager._sendOp(project_id, doc_id, opData)
-    })
-  },
+      // only check hash when present and no other updates have been applied
+      if (update.hash != null && incomingUpdateVersion === version) {
+        const ourHash = ShareJsUpdateManager._computeHash(snapshot)
+        if (ourHash !== update.hash) {
+          metrics.inc('sharejs.hash-fail')
+          return callback(new Error('Invalid hash'))
+        } else {
+          metrics.inc('sharejs.hash-pass')
+        }
+      }
 
-  _sendOp(project_id, doc_id, op) {
-    return RealTimeRedisManager.sendData({ project_id, doc_id, op })
+      const docLines = snapshot.split(/\r\n|\n|\r/)
+      callback(null, docLines, docVersion, [op])
+    })
   },
 
   _computeHash(content) {
