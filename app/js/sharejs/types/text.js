@@ -103,7 +103,6 @@ text.apply = function (snapshot, op) {
 //
 // For simplicity, this version of append does not compress adjacent inserts and deletes of
 // the same text. It would be nice to change that at some stage.
-text._append = append
 function append(newOp, c) {
   if (c.i === '' || c.d === '') {
     return
@@ -140,44 +139,6 @@ function append(newOp, c) {
   }
 }
 
-text.compose = function (op1, op2) {
-  checkValidOp(op1)
-  checkValidOp(op2)
-
-  const newOp = op1.slice()
-  for (const c of Array.from(op2)) {
-    append(newOp, c)
-  }
-
-  return newOp
-}
-
-// Attempt to compress the op components together 'as much as possible'.
-// This implementation preserves order and preserves create/delete pairs.
-text.compress = (op) => text.compose([], op)
-
-text.normalize = function (op) {
-  const newOp = []
-
-  // Normalize should allow ops which are a single (unwrapped) component:
-  // {i:'asdf', p:23}.
-  // There's no good way to test if something is an array:
-  // http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
-  // so this is probably the least bad solution.
-  if (op.i != null || op.p != null) {
-    op = [op]
-  }
-
-  for (const c of Array.from(op)) {
-    if (c.p == null) {
-      c.p = 0
-    }
-    append(newOp, c)
-  }
-
-  return newOp
-}
-
 // This helper method transforms a position by an op component.
 //
 // If c is an insert, insertAfter specifies whether the transform
@@ -209,22 +170,10 @@ const transformPosition = function (pos, c, insertAfter) {
   }
 }
 
-// Helper method to transform a cursor position as a result of an op.
-//
-// Like transformPosition above, if c is an insert, insertAfter specifies whether the cursor position
-// is pushed after an insert (true) or before it (false).
-text.transformCursor = function (position, op, side) {
-  const insertAfter = side === 'right'
-  for (const c of Array.from(op)) {
-    position = transformPosition(position, c, insertAfter)
-  }
-  return position
-}
-
 // Transform an op component by another op component. Asymmetric.
 // The result will be appended to destination.
 //
-// exported for use in JSON type
+// exported for use in tests
 text._tc = transformComponent
 function transformComponent(dest, c, otherC, side) {
   let cIntersect, intersectEnd, intersectStart, newC, otherIntersect
@@ -351,19 +300,6 @@ function transformComponent(dest, c, otherC, side) {
   return dest
 }
 
-const invertComponent = function (c) {
-  if (c.i != null) {
-    return { d: c.i, p: c.p }
-  } else {
-    return { i: c.d, p: c.p }
-  }
-}
-
-// No need to use append for invert, because the components won't be able to
-// cancel with one another.
-text.invert = (op) =>
-  Array.from(op.slice().reverse()).map((c) => invertComponent(c))
-
 module.exports = text
 
 // The text type really shouldn't need this - it should be possible to define
@@ -385,7 +321,6 @@ function transformComponentX(left, right, destLeft, destRight) {
 }
 
 // Transforms rightOp by leftOp. Returns ['rightOp', clientOp']
-text.transformX = transformX
 function transformX(leftOp, rightOp) {
   checkValidOp(leftOp)
   checkValidOp(rightOp)

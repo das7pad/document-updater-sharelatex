@@ -21,12 +21,9 @@ Transform and apply must never modify their arguments.
 Optional properties:
 
 `tp2`: _(bool)_ True if the transform function supports TP2. This allows p2p architectures to work.
-`compose(op1, op2) -> op`: Create and return a new op which has the same effect as op1 + op2.
 `serialize(snapshot) -> JSON object`: Serialize a document to something we can JSON.stringify()
 `deserialize(object) -> snapshot`: Deserialize a JSON object into the document's internal snapshot format
 `prune(op1', op2, side) -> op1`: Inserse transform function. Only required for TP2 types.
-`normalize(op) -> op`: Fix up an op to make it valid. Eg, remove skips of size zero.
-`api`: _(object)_ Set of helper methods which will be mixed in to the client document object for manipulating documents. See below.
 
 
 # Examples
