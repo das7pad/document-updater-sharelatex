@@ -24,18 +24,18 @@ describe('ShareJsUpdateManager', function () {
     this.callback = sinon.stub()
     return (this.ShareJsUpdateManager = SandboxedModule.require(modulePath, {
       requires: {
-        './sharejs/server/model': (Model = class Model {
-          constructor(db) {
-            this.db = db
-          }
+        './sharejs/server/model': (this.ShareJSModel = {
+          applyUpdate: sinon.stub()
         }),
-        './ShareJsDB': (this.ShareJsDB = { mockDB: true }),
         '@overleaf/redis-wrapper': {
           createClient: () => {
             return (this.rclient = { auth() {} })
           }
         },
         'logger-sharelatex': (this.logger = { log: sinon.stub() }),
+        './RedisManager': {
+          getPreviousDocOps: sinon.stub().yields(null, [])
+        },
         './RealTimeRedisManager': (this.RealTimeRedisManager = {
           sendData: sinon.stub()
         }),
@@ -59,18 +59,13 @@ describe('ShareJsUpdateManager', function () {
         .update(content, 'utf8')
         .digest('hex')
       this.update = { p: 4, t: 'foo', v: this.version, hash: this.hash }
-      this.model = {
-        applyOp: sinon
-          .stub()
-          .yields(null, this.version + 1, this.update, content),
-        db: {}
-      }
-      this.ShareJsUpdateManager.getNewShareJsModel = sinon
-        .stub()
-        .returns(this.model)
-      return (this.ShareJsUpdateManager.removeDocFromCache = sinon
-        .stub()
-        .callsArg(1))
+      this.ShareJSModel.applyUpdate.callsArgWith(
+        4,
+        null,
+        this.version + 1,
+        this.update,
+        content
+      )
     })
 
     describe('successfully', function () {
@@ -88,18 +83,6 @@ describe('ShareJsUpdateManager', function () {
         )
       })
 
-      it('should create a new ShareJs model', function () {
-        return this.ShareJsUpdateManager.getNewShareJsModel
-          .calledWith(this.project_id, this.doc_id, this.lines, this.version)
-          .should.equal(true)
-      })
-
-      it('should send the update to ShareJs', function () {
-        return this.model.applyOp
-          .calledWith(`${this.project_id}:${this.doc_id}`, this.update)
-          .should.equal(true)
-      })
-
       return it('should return the updated doc lines, version and ops', function () {
         return this.callback
           .calledWith(null, this.updatedDocLines, this.version + 1, [
@@ -112,7 +95,7 @@ describe('ShareJsUpdateManager', function () {
     describe('when applyOp fails', function () {
       beforeEach(function (done) {
         this.error = new Error('Something went wrong')
-        this.model.applyOp = sinon.stub().callsArgWith(2, this.error)
+        this.ShareJSModel.applyUpdate.callsArgWith(4, this.error)
         return this.ShareJsUpdateManager.applyUpdate(
           this.project_id,
           this.doc_id,
@@ -134,7 +117,8 @@ describe('ShareJsUpdateManager', function () {
     return describe('with an invalid hash', function () {
       beforeEach(function (done) {
         this.error = new Error('invalid hash')
-        this.model.applyOp.yields(
+        this.ShareJSModel.applyUpdate.callsArgWith(
+          4,
           null,
           this.version + 1,
           this.update,
