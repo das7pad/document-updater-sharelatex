@@ -177,8 +177,8 @@ const transformPosition = function (pos, c, insertAfter) {
 text._tc = transformComponent
 function transformComponent(dest, c, otherC, side) {
   let cIntersect, intersectEnd, intersectStart, newC, otherIntersect
-  checkValidOp([c])
-  checkValidOp([otherC])
+  checkValidComponent(c)
+  checkValidComponent(otherC)
 
   if (c.i != null) {
     append(dest, {
