@@ -244,10 +244,7 @@ function transformComponent(dest, c, otherC, side) {
     if (otherC.i != null) {
       if (c.p < otherC.p && otherC.p < c.p + c.c.length) {
         const offset = otherC.p - c.p
-        const new_c =
-          c.c.slice(0, +(offset - 1) + 1 || undefined) +
-          otherC.i +
-          c.c.slice(offset)
+        const new_c = c.c.slice(0, offset) + otherC.i + c.c.slice(offset)
         append(dest, { c: new_c, p: c.p, t: c.t })
       } else {
         append(dest, {
