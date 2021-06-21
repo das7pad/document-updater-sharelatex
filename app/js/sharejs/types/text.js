@@ -52,7 +52,7 @@ const checkValidComponent = function (c) {
     throw new Error('component needs an i, d or c field')
   }
 
-  if (!(c.p >= 0)) {
+  if (c.p < 0) {
     throw new Error('position cannot be negative')
   }
 }
