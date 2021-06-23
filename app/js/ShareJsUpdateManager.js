@@ -96,9 +96,6 @@ module.exports = ShareJsUpdateManager = {
           )
         }
 
-        logger.log({ project_id, doc_id, error }, 'applied update')
-        RealTimeRedisManager.sendData({ project_id, doc_id, op })
-
         // only check hash when present and no other updates have been applied
         if (update.hash != null && incomingUpdateVersion === version) {
           const ourHash = ShareJsUpdateManager._computeHash(snapshot)
@@ -109,6 +106,9 @@ module.exports = ShareJsUpdateManager = {
             metrics.inc('sharejs.hash-pass')
           }
         }
+
+        logger.log({ project_id, doc_id, error }, 'applied update')
+        RealTimeRedisManager.sendData({ project_id, doc_id, op })
 
         const docLines = snapshot.split(/\r\n|\n|\r/)
         callback(null, docLines, docVersion, [op])
