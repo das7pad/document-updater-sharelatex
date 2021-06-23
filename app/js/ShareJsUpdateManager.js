@@ -110,7 +110,7 @@ module.exports = ShareJsUpdateManager = {
         logger.log({ project_id, doc_id, error }, 'applied update')
         RealTimeRedisManager.sendData({ project_id, doc_id, op })
 
-        const docLines = snapshot.split(/\r\n|\n|\r/)
+        const docLines = snapshot.split('\n')
         callback(null, docLines, docVersion, [op])
       }
     )
