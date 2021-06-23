@@ -57,7 +57,7 @@ module.exports = ShareJsUpdateManager = {
       version,
       update,
       (start, end, cb) =>
-        RedisManager.getPreviousDocOps(doc_id, start, end, cb),
+        RedisManager.getPreviousDocUpdatesUnderLock(doc_id, start, end, cb),
       (error, docVersion, op, snapshot) => {
         if (error != null) {
           if (error.message === 'Op already submitted') {

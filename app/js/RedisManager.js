@@ -344,6 +344,50 @@ module.exports = RedisManager = {
     )
   },
 
+  getPreviousDocUpdatesUnderLock(doc_id, start, end, callback) {
+    if (start === end) {
+      // Happy path: the update is based on the current snapshot.
+      return callback(null, [])
+    }
+    const n = end - start
+    const timer = new metrics.Timer('redis.get-prev-docops')
+    rclient.lrange(keys.docOps({ doc_id }), -n, n, (err, rawUpdates) => {
+      if (err) {
+        return callback(err)
+      }
+      let updates
+      try {
+        updates = rawUpdates.map((raw) => JSON.parse(raw))
+      } catch (e) {
+        return callback(e)
+      }
+      if (updates.length !== n || start !== updates[0].v) {
+        err = new Errors.OpRangeNotAvailableError(
+          'doc ops range is not loaded in redis'
+        )
+        logger.warn(
+          {
+            err,
+            doc_id,
+            requestedStart: start,
+            requestedUpdates: n,
+            receivedStart: updates.length && updates[0].v,
+            receivedUpdates: updates.length
+          },
+          'doc ops range is not loaded in redis'
+        )
+        return callback(err)
+      }
+
+      const timeSpan = timer.done()
+      if (timeSpan > MAX_REDIS_REQUEST_LENGTH) {
+        err = new Error('redis getPreviousDocOps exceeded timeout')
+        return callback(err)
+      }
+      callback(null, updates)
+    })
+  },
+
   getPreviousDocOps(doc_id, start, end, callback) {
     if (callback == null) {
       callback = function (error, jsonOps) {}

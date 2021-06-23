@@ -58,29 +58,12 @@ function applyUpdate(snapshot, version, update, getRemoteOps, cb) {
     update.meta = {}
   }
   update.meta.ts = Date.now()
-  const originalUpdateVersion = update.v
 
-  getRemoteOps(update.v, -1, (err, updates) => {
+  getRemoteOps(update.v, version, (err, updates) => {
     if (err) {
       return cb(
-        new OError('cannot get remote ops', { start: update.v, end: -1 }, err)
+        new OError('cannot get remote ops', { start: update.v, version }, err)
       )
-    }
-
-    // Check for missing updates in redis.
-    if (updates.length > 0) {
-      const receivedStartVersion = updates[0].v
-      const nUpdates = updates.length
-      if (receivedStartVersion !== update.v || nUpdates < version - update.v) {
-        return cb(
-          new OError('updates do not match getOps request', {
-            startVersion: update.v,
-            receivedStartVersion,
-            minEndVersion: version,
-            nUpdates
-          })
-        )
-      }
     }
 
     // Transform the update
@@ -109,26 +92,9 @@ function applyUpdate(snapshot, version, update, getRemoteOps, cb) {
       }
     }
 
-    // Transform the snapshot
-    // TODO(das7pad): Consider dropping this, also change getRemoteOps end.
-    //                All of version/snapshot/updates are set in multi.
-    //                Getting catchUpUpdates hints on broken locking.
-    const catchUpUpdates = updates.slice(version - originalUpdateVersion)
-    if (catchUpUpdates.length > 0) {
-      let catchUpUpdate
-      try {
-        for (catchUpUpdate of catchUpUpdates) {
-          snapshot = text.apply(snapshot, catchUpUpdate.op)
-          version++
-        }
-      } catch (e) {
-        return cb(new OError('cannot catch up snapshot', { catchUpUpdate }, e))
-      }
-    }
-
     if (update.v !== version) {
       return cb(
-        new OError('transform/catch up incomplete', {
+        new OError('transform incomplete', {
           updateVersion: update.v,
           version
         })
