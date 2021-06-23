@@ -1,17 +1,4 @@
-/* eslint-disable
-    camelcase,
-    handle-callback-err,
-    no-unused-vars,
-*/
-// TODO: This file was created by bulk-decaffeinate.
-// Fix any style issues and re-enable lint.
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
+/* eslint-disable camelcase */
 let ShareJsUpdateManager
 const ShareJsModel = require('./sharejs/server/model')
 const logger = require('logger-sharelatex')
@@ -38,11 +25,7 @@ function checkVersion(incoming, current) {
 
 module.exports = ShareJsUpdateManager = {
   applyUpdate(project_id, doc_id, update, lines, version, callback) {
-    if (callback == null) {
-      callback = function (error, updatedDocLines) {}
-    }
     logger.log({ project_id, doc_id, update }, 'applying sharejs updates')
-    const jobs = []
     // record the update version before it is modified
     const incomingUpdateVersion = update.v
 
@@ -59,7 +42,7 @@ module.exports = ShareJsUpdateManager = {
       (start, end, cb) =>
         RedisManager.getPreviousDocUpdatesUnderLock(doc_id, start, end, cb),
       (error, docVersion, op, snapshot) => {
-        if (error != null) {
+        if (error) {
           if (error.message === 'Op already submitted') {
             metrics.inc('sharejs.already-submitted')
             logger.warn(
@@ -97,7 +80,7 @@ module.exports = ShareJsUpdateManager = {
         }
 
         // only check hash when present and no other updates have been applied
-        if (update.hash != null && incomingUpdateVersion === version) {
+        if (update.hash && incomingUpdateVersion === version) {
           const ourHash = ShareJsUpdateManager._computeHash(snapshot)
           if (ourHash !== update.hash) {
             metrics.inc('sharejs.hash-fail')
